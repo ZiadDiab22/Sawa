@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\Auth\AuthService;
 use App\Services\Auth\UserService;
@@ -23,6 +24,16 @@ class AuthController extends Controller
         $request->validate([
             'phone' => 'required|string|exists:users,phone',
         ]);
+
+        $user = User::where('phone', $request->phone)->first();
+        $hasRole = $user->roles()->where('role_id', 1)->exists();
+
+        if (!$hasRole) {
+            return response()->json([
+                'status' => false,
+                'message' => 'this api for users ( passengers ) only',
+            ], 403);
+        }
 
         $status = $this->authService->sendOtp($request->phone);
 

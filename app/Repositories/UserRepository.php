@@ -14,7 +14,11 @@ class UserRepository
 
   public function create(array $data): User
   {
-    return User::create($data);
+    $user = User::create($data);
+
+    $user->roles()->attach(1);
+
+    return $user;
   }
 
   public function updateOtp(User $user, string $otp): bool
