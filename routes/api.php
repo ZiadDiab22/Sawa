@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Auth\UserController;
 use App\Http\Controllers\Api\Passenger\ProfileController;
 use App\Http\Controllers\Api\Admin\DriverApprovalController;
 use App\Http\Controllers\Api\Driver\DriverDocumentController;
+use App\Http\Controllers\Api\Driver\DriverProfileController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -45,8 +46,6 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::post('/drivers/{id}/approve', [DriverApprovalController::class, 'approve']);
     Route::post('/drivers/{id}/reject', [DriverApprovalController::class, 'reject']);
     Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
-    Route::get('/drivers/approved', [DriverApprovalController::class, 'approvedDrivers']);
+        Route::get('/drivers/approved', [DriverApprovalController::class, 'approvedDrivers']);
+    });
 });
-
-});
-
