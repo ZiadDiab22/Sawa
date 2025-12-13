@@ -16,10 +16,11 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('phone')->unique();
+            $table->string('profile_image')->nullable();
             $table->string('password')->default(0000);
             $table->boolean('blocked')->default(false);
             $table->enum('gender', ['male', 'female'])->nullable();
-            $table->enum('status', ['active', 'inactive', 'banned'])->default('active');
+            $table->enum('status', ['active', 'inactive', 'banned'])->default('inactive');
             $table->string('otp')->nullable();
             $table->timestamp('otp_expire_at')->nullable();
             $table->timestamps();

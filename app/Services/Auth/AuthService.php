@@ -54,4 +54,5 @@ class AuthService
     $user->tokens()->delete();
     return true;
   }
+
 }

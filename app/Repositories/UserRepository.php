@@ -34,4 +34,17 @@ class UserRepository
     $user->otp_expire_at = null;
     return $user->save();
   }
+
+  //passengerprofile
+   public function findById(int $id): User
+    {
+        return User::findOrFail($id);
+    }
+
+    public function update(int $id, array $data): User
+    {
+        $user = $this->findById($id);
+        $user->update($data);
+        return $user;
+    }
 }

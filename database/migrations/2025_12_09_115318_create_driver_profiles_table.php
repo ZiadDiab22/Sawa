@@ -34,6 +34,7 @@ return new class extends Migration
             $table->string('vehicle_plate_number')->unique();
 
             $table->enum('status', ['pending', 'approved', 'suspended'])->default('pending');
+            $table->enum('is_status', ['active', 'inactive', 'banned'])->default('inactive');
 
             $table->timestamps();
         });
