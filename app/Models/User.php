@@ -17,7 +17,8 @@ class User extends Authenticatable
         'password',
         'status',
         'blocked',
-        'gender'
+        'gender',
+        'profile_image'
     ];
 
     public function roles()
