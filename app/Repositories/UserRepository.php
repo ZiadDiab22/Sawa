@@ -12,6 +12,11 @@ class UserRepository
     return User::where('phone', $phone)->first();
   }
 
+  public function findByEmail(string $email): ?User
+  {
+    return User::where('email', $email)->first();
+  }
+
   public function create(array $data): User
   {
     $user = User::create($data);
@@ -36,15 +41,15 @@ class UserRepository
   }
 
   //passengerprofile
-   public function findById(int $id): User
-    {
-        return User::findOrFail($id);
-    }
+  public function findById(int $id): User
+  {
+    return User::findOrFail($id);
+  }
 
-    public function update(int $id, array $data): User
-    {
-        $user = $this->findById($id);
-        $user->update($data);
-        return $user;
-    }
+  public function update(int $id, array $data): User
+  {
+    $user = $this->findById($id);
+    $user->update($data);
+    return $user;
+  }
 }
