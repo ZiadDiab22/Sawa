@@ -26,7 +26,7 @@ Route::prefix('user')->group(function () {
 
 Route::prefix('driver')->group(function () {
     Route::post('/register', [DriverController::class, 'register']);
-   // Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [DriverController::class, 'login']);
 });
 
 //passenger
