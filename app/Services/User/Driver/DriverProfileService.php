@@ -45,7 +45,7 @@ class DriverProfileService
 
         unset($data['image']);
 
-        $profile = $this->driverProfileRepository->updateOrCreate(
+        $profile = $this->DriverRepository->updateOrCreate(
             $userId,
             $data
         );

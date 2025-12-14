@@ -3,9 +3,10 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\AuthController;
-use App\Http\Controllers\Api\Auth\UserController;
+use App\Http\Controllers\Api\Passenger\UserController;
 use App\Http\Controllers\Api\Passenger\ProfileController;
 use App\Http\Controllers\Api\Admin\DriverApprovalController;
+use App\Http\Controllers\Api\Driver\DriverController;
 use App\Http\Controllers\Api\Driver\DriverDocumentController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
 
@@ -16,10 +17,16 @@ Route::get('/user', function (Request $request) {
 
 Route::prefix('user')->group(function () {
     Route::post('/register', [UserController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [UserController::class, 'login']);
     Route::post('/verifyOtp', [AuthController::class, 'verifyOtp']);
 
     Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
+});
+
+
+Route::prefix('driver')->group(function () {
+    Route::post('/register', [DriverController::class, 'register']);
+   // Route::post('/login', [AuthController::class, 'login']);
 });
 
 //passenger

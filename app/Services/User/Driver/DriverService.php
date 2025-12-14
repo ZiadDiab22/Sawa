@@ -1,0 +1,24 @@
+<?php
+
+namespace App\Services\User\Driver;
+
+use App\Repositories\UserRepository;
+
+class DriverService
+{
+  protected UserRepository $userRepository;
+
+  public function __construct(UserRepository $userRepository)
+  {
+    $this->userRepository = $userRepository;
+  }
+
+  public function register(array $data)
+  {
+    $user = $this->userRepository->create($data);
+
+    return [
+      'user'  => $user,
+    ];
+  }
+}
