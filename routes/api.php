@@ -11,10 +11,9 @@ use App\Http\Controllers\Api\Driver\DriverController;
 use App\Http\Controllers\Api\Driver\DriverDocumentController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
-
+// Route::get('/user', function (Request $request) {
+//     return $request->user();
+// })->middleware('auth:sanctum');
 
 Route::prefix('user')->group(function () {
     Route::post('/register', [UserController::class, 'register']);
@@ -49,7 +48,12 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
 
 Route::prefix('admin')->group(function () {
     Route::post('/login', [AdminController::class, 'login']);
-    Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
+
+    Route::middleware(['auth:sanctum', 'check_admin'])->group(function () {
+        Route::post('/profile/update', [AdminController::class, 'updateProfile']);
+    });
+
+    Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/drivers/pending', [DriverApprovalController::class, 'pendingDrivers']);
         Route::get('/drivers/{id}', [DriverApprovalController::class, 'show']);
         Route::post('/drivers/{id}/approve', [DriverApprovalController::class, 'approve']);

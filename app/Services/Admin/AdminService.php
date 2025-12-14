@@ -43,4 +43,15 @@ class AdminService
       'token' => $token,
     ];
   }
+
+  public function updateProfile($userId, array $data)
+  {
+    $updateData = $data;
+
+    if (isset($data['password'])) {
+      $updateData['password'] = Hash::make($data['password']);
+    }
+
+    return $this->userRepository->update($userId, $updateData);
+  }
 }
