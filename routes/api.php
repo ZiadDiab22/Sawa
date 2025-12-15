@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Admin\DriverApprovalController;
 use App\Http\Controllers\Api\Driver\DriverController;
 use App\Http\Controllers\Api\Driver\DriverDocumentController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
+use App\Http\Controllers\Api\Driver\DriverRatingController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -20,7 +21,12 @@ Route::prefix('user')->group(function () {
     Route::post('/login', [UserController::class, 'login']);
     Route::post('/verifyOtp', [AuthController::class, 'verifyOtp']);
 
-    Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('rating', [DriverRatingController::class, 'store']);
+        Route::put('rating/{id}', [DriverRatingController::class, 'update']);
+        Route::delete('rating/{id}', [DriverRatingController::class, 'destroy']);
+    });
 });
 
 Route::prefix('driver')->group(function () {

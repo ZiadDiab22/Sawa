@@ -10,6 +10,7 @@ class DriverRating extends Model
     protected $fillable = [
         'ride_id',
         'driver_id',
+        'user_id',
         'passenger_id',
         'rating',
         'comment',
@@ -25,8 +26,15 @@ class DriverRating extends Model
         return $this->belongsTo(User::class, 'driver_id');
     }
 
-    public function passenger(): BelongsTo
+    protected $appends = ['user_name'];
+
+    public function getUserNameAttribute()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->user?->name;
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

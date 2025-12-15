@@ -26,7 +26,7 @@ return new class extends Migration
                 ->constrained('users')
                 ->cascadeOnDelete();
 
-            $table->unsignedTinyInteger('rating');
+            $table->decimal('rating', 2, 1);
             $table->text('comment')->nullable();
 
             $table->timestamps();
