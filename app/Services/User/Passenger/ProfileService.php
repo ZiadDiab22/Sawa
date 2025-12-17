@@ -2,8 +2,9 @@
 
 namespace App\Services\User\Passenger;
 
-use App\Repositories\UserRepository;
 use Illuminate\Http\UploadedFile;
+use App\Repositories\UserRepository;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class ProfileService
@@ -21,6 +22,7 @@ class ProfileService
             'name'  => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
+            'status' => $user->status,
             'image' => $user->profile_image
                 ? asset('storage/' . $user->profile_image)
                 : null,
@@ -29,6 +31,7 @@ class ProfileService
 
     public function updateProfile(int $userId, array $data): array
     {
+
         if (isset($data['image']) && $data['image'] instanceof UploadedFile) {
             $data['profile_image'] = $this->uploadImage($data['image']);
         }
