@@ -23,10 +23,11 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'name'  => 'required|string|max:255',
+            'name'  => 'nullable|string|max:255',
+            'status' => 'nullable|in:active,inactive,banned',
             'email' => 'nullable|email|unique:users,email,' . Auth::id(),
-            'phone' => 'required|unique:users,phone,' . Auth::id(),
-            'image' => 'nullable|image|max:2048',
+            'phone' => 'nullable|unique:users,phone,' . Auth::id(),
+            'profile_image' => 'nullable|image|max:2048',
         ]);
 
         return response()->json([
