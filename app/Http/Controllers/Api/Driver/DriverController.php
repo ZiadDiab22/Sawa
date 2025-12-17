@@ -66,4 +66,14 @@ class DriverController extends Controller
             'status' => $driver->is_status,
         ]);
     }
+
+    public function accept($id)
+    {
+        $driver = $this->driverService->accept($id);
+
+        return response()->json([
+            'message' => 'Done Successfully',
+            'status' => $driver->status,
+        ]);
+    }
 }

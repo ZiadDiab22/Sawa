@@ -2,6 +2,7 @@
 
 namespace App\Services\User\Driver;
 
+use App\Models\DriverProfile;
 use Exception;
 use Illuminate\Http\UploadedFile;
 use App\Repositories\DriverRepository;
@@ -11,7 +12,7 @@ class DriverDocumentService
 {
     public function __construct(
         protected DriverDocumentRepository $repository,
-        protected DriverProfileRepository $driverProfileRepository
+        protected DriverProfile $driverProfileRepository
     ) {}
 
     public function list(int $userId)

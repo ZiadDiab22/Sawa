@@ -3,7 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\DriverProfile;
-use SebastianBergmann\CodeCoverage\Driver\Driver;
+use App\Models\UserRole;
 
 class DriverRepository
 {
@@ -67,6 +67,18 @@ class DriverRepository
     public function toggleStatus(DriverProfile $driver)
     {
         $driver->is_status = $driver->is_status === 'active' ? 'inactive' : 'active';
+        $driver->save();
+        return $driver;
+    }
+
+    public function accept(DriverProfile $driver)
+    {
+        UserRole::firstOrCreate([
+            'user_id' => $driver->user_id,
+            'role_id' => 2
+        ]);
+
+        $driver->status = 'approved';
         $driver->save();
         return $driver;
     }

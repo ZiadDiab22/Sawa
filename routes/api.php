@@ -66,6 +66,8 @@ Route::prefix('admin')->group(function () {
         Route::put('/vehicle-types/update/{id}', [VehicleTypeController::class, 'update']);
         Route::delete('/vehicle-types/destroy/{id}', [VehicleTypeController::class, 'destroy']);
         Route::get('/vehicle-types/index', [VehicleTypeController::class, 'index']);
+        //drivers
+        Route::put('/driver/accept/{id}', [DriverController::class, 'accept']);
     });
 
     Route::middleware(['auth:sanctum'])->group(function () {
