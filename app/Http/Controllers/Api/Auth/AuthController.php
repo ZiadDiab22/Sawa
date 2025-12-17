@@ -29,7 +29,7 @@ class AuthController extends Controller
         $token = $this->authService->verifyOtp($request->phone, $request->otp);
 
         return response()->json([
-            // 'status' => true,
+            'status' => true,
             'message' => 'Login successful',
             'token' => $token
         ]);
@@ -45,5 +45,4 @@ class AuthController extends Controller
             'message' => 'Logged out successfully'
         ]);
     }
-
 }

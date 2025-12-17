@@ -26,10 +26,6 @@ class AdminService
       throw new \Exception('This account is blocked');
     }
 
-    if ($user->status !== 'active') {
-      throw new \Exception('This account isnt active');
-    }
-
     $hasRole = $user->roles()->where('role_id', 4)->exists();
 
     if (!$hasRole) {

@@ -2,6 +2,7 @@
 
 namespace App\Services\Auth;
 
+use App\Models\User;
 use App\Repositories\UserRepository;
 
 class AuthService
@@ -43,6 +44,8 @@ class AuthService
     }
 
     $this->userRepository->clearOtp($user);
+    $user->is_verified = true;
+    $user->save();
 
     $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -55,4 +58,15 @@ class AuthService
     return true;
   }
 
+  public function login($request)
+  {
+    $user = User::where('phone', $request['phone'])->first();
+    $hasRole = $user->roles()->where('role_id', 1)->exists();
+
+    if (!$hasRole) {
+      throw new \Exception('this api for users ( passengers ) only');
+    }
+
+    return $user->createToken('auth_token')->plainTextToken;
+  }
 }

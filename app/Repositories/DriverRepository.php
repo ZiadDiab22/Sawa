@@ -7,7 +7,7 @@ use SebastianBergmann\CodeCoverage\Driver\Driver;
 
 class DriverRepository
 {
-   
+
     public function create(array $data): DriverProfile
     {
         return DriverProfile::create($data);
@@ -26,8 +26,6 @@ class DriverRepository
             ->with(['vehicleMake', 'vehicleType'])
             ->firstOrFail();
     }
-<<<<<<< HEAD
-=======
 
     public function updateOrCreate(int $userId, array $data): DriverProfile
     {
@@ -72,5 +70,4 @@ class DriverRepository
         $driver->save();
         return $driver;
     }
->>>>>>> 359766234549512e5ec3687d38302e1a34e7c22c
 }

@@ -32,7 +32,7 @@ Route::prefix('user')->group(function () {
 });
 
 Route::prefix('driver')->group(function () {
-    Route::post('/register', [DriverController::class, 'register']);
+    Route::post('/register', [UserController::class, 'register']);
     Route::post('/login', [UserController::class, 'login']);
 });
 
@@ -44,11 +44,10 @@ Route::middleware('auth:sanctum')->prefix('user')->group(function () {
 
 //Driver
 Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
-        Route::get('/show', [DriverProfileController::class, 'show']);
-        Route::post('/update/{id}', [DriverProfileController::class, 'update']);
-        Route::post('/store', [DriverProfileController::class, 'store']);
-        Route::put('/active', [DriverController::class, 'toggleStatus'])->middleware(['check_driver']);
-
+    Route::get('/show', [DriverProfileController::class, 'show']);
+    Route::post('/update/{id}', [DriverProfileController::class, 'update']);
+    Route::post('/store', [DriverProfileController::class, 'store']);
+    Route::put('/active', [DriverController::class, 'toggleStatus'])->middleware(['check_driver']);
 });
 
 
@@ -56,18 +55,17 @@ Route::prefix('admin')->group(function () {
     Route::post('/login', [AdminController::class, 'login']);
     //profile
     Route::middleware(['auth:sanctum', 'check_admin'])->group(function () {
-    Route::post('/profile/update', [AdminController::class, 'updateProfile']);
-    //city
-    Route::post('/city/store', [CityController::class, 'store']);
-    Route::put('/city/update/{id}', [CityController::class, 'update']);
-    Route::delete('/city/destroy/{id}', [CityController::class, 'destroy']);
-    Route::get('/city/index', [CityController::class, 'index']);
-    //vehicle-types
-    Route::post('/vehicle-types/store', [VehicleTypeController::class, 'store']);
-    Route::put('/vehicle-types/update/{id}', [VehicleTypeController::class, 'update']);
-    Route::delete('/vehicle-types/destroy/{id}', [VehicleTypeController::class, 'destroy']);
-    Route::get('/vehicle-types/index', [VehicleTypeController::class, 'index']);
-
+        Route::post('/profile/update', [AdminController::class, 'updateProfile']);
+        //city
+        Route::post('/city/store', [CityController::class, 'store']);
+        Route::put('/city/update/{id}', [CityController::class, 'update']);
+        Route::delete('/city/destroy/{id}', [CityController::class, 'destroy']);
+        Route::get('/city/index', [CityController::class, 'index']);
+        //vehicle-types
+        Route::post('/vehicle-types/store', [VehicleTypeController::class, 'store']);
+        Route::put('/vehicle-types/update/{id}', [VehicleTypeController::class, 'update']);
+        Route::delete('/vehicle-types/destroy/{id}', [VehicleTypeController::class, 'destroy']);
+        Route::get('/vehicle-types/index', [VehicleTypeController::class, 'index']);
     });
 
     Route::middleware(['auth:sanctum'])->group(function () {
