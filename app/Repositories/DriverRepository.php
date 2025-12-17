@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\DriverProfile;
+use SebastianBergmann\CodeCoverage\Driver\Driver;
 
 class DriverRepository
 {
@@ -22,27 +23,38 @@ class DriverRepository
     }
 
     public function getByStatus(string $status)
-{
-    return DriverProfile::with('user')
-        ->where('status', $status)
-        ->get();
-}
+    {
+        return DriverProfile::with('user')
+            ->where('status', $status)
+            ->get();
+    }
 
-public function findById(int $id): DriverProfile
-{
-    return DriverProfile::findOrFail($id);
-}
+    public function findById(int $id): DriverProfile
+    {
+        return DriverProfile::findOrFail($id);
+    }
 
-public function findByIdWithUser(int $id): DriverProfile
-{
-    return DriverProfile::with('user')->findOrFail($id);
-}
+    public function findProfileById(int $id)
+    {
+        return DriverProfile::where('user_id', $id)->first();
+    }
 
-public function updateStatus(int $id, string $status): void
-{
-    DriverProfile::where('id', $id)->update([
-        'status' => $status
-    ]);
-}
+    public function findByIdWithUser(int $id): DriverProfile
+    {
+        return DriverProfile::with('user')->findOrFail($id);
+    }
 
+    public function updateStatus(int $id, string $status): void
+    {
+        DriverProfile::where('id', $id)->update([
+            'status' => $status
+        ]);
+    }
+
+    public function toggleStatus(DriverProfile $driver)
+    {
+        $driver->is_status = $driver->is_status === 'active' ? 'inactive' : 'active';
+        $driver->save();
+        return $driver;
+    }
 }

@@ -56,4 +56,14 @@ class DriverController extends Controller
             'message' => 'Message will be sent to your phone number',
         ]);
     }
+
+    public function toggleStatus()
+    {
+        $driver = $this->driverService->toggleStatus();
+
+        return response()->json([
+            'message' => 'Done Successfully',
+            'status' => $driver->is_status,
+        ]);
+    }
 }

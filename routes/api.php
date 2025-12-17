@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->prefix('user')->group(function () {
 Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::get('/profile', [DriverProfileController::class, 'show']);
     Route::put('/profile', [DriverProfileController::class, 'update']);
+    Route::put('/active', [DriverController::class, 'toggleStatus'])->middleware(['check_driver']);
 });
 
 
