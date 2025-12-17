@@ -1,16 +1,18 @@
 <?php
 
-use App\Http\Controllers\Api\Admin\AdminController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\AuthController;
-use App\Http\Controllers\Api\Passenger\UserController;
-use App\Http\Controllers\Api\Passenger\ProfileController;
-use App\Http\Controllers\Api\Admin\DriverApprovalController;
+use App\Http\Controllers\Api\Admin\CityController;
+use App\Http\Controllers\Api\Admin\AdminController;
 use App\Http\Controllers\Api\Driver\DriverController;
-use App\Http\Controllers\Api\Driver\DriverDocumentController;
-use App\Http\Controllers\Api\Driver\DriverProfileController;
+use App\Http\Controllers\Api\Passenger\UserController;
+use App\Http\Controllers\Api\Admin\VehicleTypeController;
+use App\Http\Controllers\Api\Passenger\ProfileController;
 use App\Http\Controllers\Api\Driver\DriverRatingController;
+use App\Http\Controllers\Api\Admin\DriverApprovalController;
+use App\Http\Controllers\Api\Driver\DriverProfileController;
+use App\Http\Controllers\Api\Driver\DriverDocumentController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -43,23 +45,35 @@ Route::middleware('auth:sanctum')->prefix('user')->group(function () {
 //Driver
 Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
         Route::get('/show', [DriverProfileController::class, 'show']);
-        Route::post('/update', [DriverProfileController::class, 'update']);
+        Route::post('/update/{id}', [DriverProfileController::class, 'update']);
+        Route::post('/store', [DriverProfileController::class, 'store']);
 });
 
 
 
-Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
-    Route::get('/documents', [DriverDocumentController::class, 'index']);
-    Route::post('/documents', [DriverDocumentController::class, 'store']);
-});
+// Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
+//     Route::get('/documents', [DriverDocumentController::class, 'index']);
+//     Route::post('/documents', [DriverDocumentController::class, 'store']);
+// });
 
 
 
 Route::prefix('admin')->group(function () {
     Route::post('/login', [AdminController::class, 'login']);
-
+    //profile
     Route::middleware(['auth:sanctum', 'check_admin'])->group(function () {
-        Route::post('/profile/update', [AdminController::class, 'updateProfile']);
+    Route::post('/profile/update', [AdminController::class, 'updateProfile']);
+    //city
+    Route::post('/city/store', [CityController::class, 'store']);
+    Route::put('/city/update/{id}', [CityController::class, 'update']);
+    Route::delete('/city/destroy/{id}', [CityController::class, 'destroy']);
+    Route::get('/city/index', [CityController::class, 'index']);
+    //vehicle-types
+    Route::post('/vehicle-types/store', [VehicleTypeController::class, 'store']);
+    Route::put('/vehicle-types/update/{id}', [VehicleTypeController::class, 'update']);
+    Route::delete('/vehicle-types/destroy/{id}', [VehicleTypeController::class, 'destroy']);
+    Route::get('/vehicle-types/index', [VehicleTypeController::class, 'index']);
+
     });
 
     Route::middleware(['auth:sanctum'])->group(function () {

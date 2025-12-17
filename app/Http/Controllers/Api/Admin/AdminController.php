@@ -27,7 +27,7 @@ class AdminController extends Controller
         $result = $this->adminService->login($data);
 
         return response()->json([
-            'status' => true,
+            // 'status' => true,
             'message' => 'Login successful',
             'user' => $result['user'],
             'token' => $result['token'],
@@ -47,7 +47,7 @@ class AdminController extends Controller
         }
 
         return response()->json([
-            'status' => true,
+            // 'status' => true,
             'message' => 'update successful',
             'user' => $updated,
         ]);

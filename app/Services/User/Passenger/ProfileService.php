@@ -22,7 +22,6 @@ class ProfileService
             'name'  => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
-            'status' => $user->status,
             'image' => $user->profile_image
                 ? asset('storage/' . $user->profile_image)
                 : null,

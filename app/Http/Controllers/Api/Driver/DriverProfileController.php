@@ -2,15 +2,43 @@
 
 namespace App\Http\Controllers\Api\Driver;
 
-use App\Http\Controllers\Controller;
-use App\Services\Driver\DriverProfileService;
 use Illuminate\Http\Request;
-
+use App\Http\Controllers\Controller;
+use App\Services\User\Driver\ProfileService;
 class DriverProfileController extends Controller
 {
     public function __construct(
-        protected DriverProfileService $driverProfileService
+        protected ProfileService $driverProfileService
     ) {}
+
+
+    // POST /api/driver/profile
+    public function store(Request $request)
+    {
+        $data = $this->validateData($request);
+
+        return response()->json([
+            'message' => 'Profile created successfully',
+            'data' => $this->driverProfileService->createProfile(
+                auth()->id(),
+                $data
+            )
+        ], 201);
+    }
+
+    // PUT /api/driver/profile
+    public function update(Request $request)
+    {
+        $data = $this->validateData($request, true);
+
+        return response()->json([
+            'message' => 'Profile updated successfully',
+            'data' => $this->driverProfileService->updateProfile(
+                auth()->id(),
+                $data
+            )
+        ]);
+    }
 
     // GET /api/driver/profile
     public function show()
@@ -20,25 +48,32 @@ class DriverProfileController extends Controller
         );
     }
 
-    // PUT /api/driver/profile
-    public function update(Request $request)
+    private function validateData(Request $request, bool $isUpdate = false): array
     {
-        $request->validate([
-            'city_id'             => 'required|exists:cities,id',
-            'vehicle_type_id'     => 'required|exists:vehicle_types,id',
-            'vehicle_model'       => 'required|string|max:255',
-            'vehicle_color'       => 'required|string|max:255',
-            'vehicle_plate_number'=> 'required|string|unique:driver_profiles,vehicle_plate_number,' . auth()->id() . ',user_id',
-            'residence_location'  => 'nullable|string',
-            'image'               => 'required|image|max:2048', // 👈 إجبارية
-        ]);
+        return $request->validate([
+            'name'  => 'required|string|max:255',
+            'email' => 'required|email',
+            'phone' => 'required|string',
 
-        return response()->json([
-            'message' => 'Driver profile updated successfully',
-            'data' => $this->driverProfileService->updateProfile(
-                auth()->id(),
-                $request->all()
-            )
+            'gender' => 'nullable|in:male,female',
+
+            'vehicle_type_id' => 'required|exists:vehicle_types,id',
+            'vehicle_make_id' => 'required|exists:vehicle_makes,id',
+
+            'vehicle_model' => 'required|string|max:255',
+            'vehicle_year'  => 'required|integer|min:1980|max:' . date('Y'),
+            'vehicle_color' => 'required|string|max:255',
+
+            'vehicle_plate_number' =>
+                'required|string|unique:driver_profiles,vehicle_plate_number,' .
+                auth()->id() . ',user_id',
+
+            'vehicle_document'   => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:4096',
+            'license_document'   => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:4096',
+            'insurance_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:4096',
+
+            'vehicle_images'   => 'nullable|array',
+            'vehicle_images.*' => 'image|max:2048',
         ]);
     }
 }

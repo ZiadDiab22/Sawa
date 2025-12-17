@@ -24,7 +24,6 @@ class ProfileController extends Controller
     {
         $request->validate([
             'name'  => 'nullable|string|max:255',
-            'status' => 'nullable|in:active,inactive,banned',
             'email' => 'nullable|email|unique:users,email,' . Auth::id(),
             'phone' => 'nullable|unique:users,phone,' . Auth::id(),
             'profile_image' => 'nullable|image|max:2048',
