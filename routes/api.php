@@ -36,21 +36,24 @@ Route::prefix('driver')->group(function () {
 
 //passenger
 Route::middleware('auth:sanctum')->prefix('user')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'show']);
-    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::get('/show', [ProfileController::class, 'show']);
+    Route::post('/update', [ProfileController::class, 'update']);
 });
 
 //Driver
 Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
-    Route::get('/profile', [DriverProfileController::class, 'show']);
-    Route::put('/profile', [DriverProfileController::class, 'update']);
+        Route::get('/show', [DriverProfileController::class, 'show']);
+        Route::post('/update', [DriverProfileController::class, 'update']);
 });
+
 
 
 Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::get('/documents', [DriverDocumentController::class, 'index']);
     Route::post('/documents', [DriverDocumentController::class, 'store']);
 });
+
+
 
 Route::prefix('admin')->group(function () {
     Route::post('/login', [AdminController::class, 'login']);
