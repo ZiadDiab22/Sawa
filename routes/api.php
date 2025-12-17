@@ -38,8 +38,8 @@ Route::prefix('driver')->group(function () {
 
 //passenger
 Route::middleware('auth:sanctum')->prefix('user')->group(function () {
-    Route::get('/show', [ProfileController::class, 'show']);
-    Route::post('/update', [ProfileController::class, 'update']);
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
 });
 
 //Driver
@@ -47,15 +47,9 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
         Route::get('/show', [DriverProfileController::class, 'show']);
         Route::post('/update/{id}', [DriverProfileController::class, 'update']);
         Route::post('/store', [DriverProfileController::class, 'store']);
+        Route::put('/active', [DriverController::class, 'toggleStatus'])->middleware(['check_driver']);
+
 });
-
-
-
-// Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
-//     Route::get('/documents', [DriverDocumentController::class, 'index']);
-//     Route::post('/documents', [DriverDocumentController::class, 'store']);
-// });
-
 
 
 Route::prefix('admin')->group(function () {
