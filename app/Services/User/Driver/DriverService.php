@@ -16,9 +16,11 @@ class DriverService
   public function register(array $data)
   {
     $user = $this->userRepository->create($data);
+    $token = $user->createToken('api_token')->plainTextToken;
 
     return [
       'user'  => $user,
+      'token' => $token,
     ];
   }
 }
