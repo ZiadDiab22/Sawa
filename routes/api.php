@@ -62,7 +62,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/city/index', [CityController::class, 'index']);
         //vehicle-types
         Route::post('/vehicle-types/store', [VehicleTypeController::class, 'store']);
-        Route::put('/vehicle-types/update/{id}', [VehicleTypeController::class, 'update']);
+        Route::post('/vehicle-types/update/{id}', [VehicleTypeController::class, 'update']);
         Route::delete('/vehicle-types/destroy/{id}', [VehicleTypeController::class, 'destroy']);
         Route::get('/vehicle-types/index', [VehicleTypeController::class, 'index']);
         //drivers
