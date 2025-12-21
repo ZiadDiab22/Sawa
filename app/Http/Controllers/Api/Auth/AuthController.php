@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\Auth\AuthService;
 use App\Services\Auth\UserService;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -41,8 +42,18 @@ class AuthController extends Controller
         $this->authService->logout($user);
 
         return response()->json([
-            // 'status' => true,
+            'status' => true,
             'message' => 'Logged out successfully'
+        ]);
+    }
+
+    public function delete()
+    {
+        User::where('id', Auth::id())->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Deleted successfully'
         ]);
     }
 }

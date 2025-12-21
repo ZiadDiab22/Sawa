@@ -13,11 +13,6 @@ use App\Http\Controllers\Api\Passenger\ProfileController;
 use App\Http\Controllers\Api\Driver\DriverRatingController;
 use App\Http\Controllers\Api\Admin\DriverApprovalController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
-use App\Http\Controllers\Api\Driver\DriverDocumentController;
-
-// Route::get('/user', function (Request $request) {
-//     return $request->user();
-// })->middleware('auth:sanctum');
 
 Route::prefix('user')->group(function () {
     Route::post('/register', [UserController::class, 'register']);
@@ -51,6 +46,9 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::put('/active', [DriverController::class, 'toggleStatus'])->middleware(['check_driver']);
 });
 
+Route::middleware(['auth:sanctum'])->prefix('account')->group(function () {
+    Route::delete('/delete', [AuthController::class, 'delete']);
+});
 
 Route::prefix('admin')->group(function () {
     Route::post('/login', [AdminController::class, 'login']);
