@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('vehicle_types', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+              $table->string('image')->nullable();
             $table->boolean('is_active')->default(false);
             $table->decimal('base_fare', 10, 2)->nullable();
             $table->decimal('per_km', 10, 2)->nullable();
@@ -29,5 +30,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('vehicle_types');
+         $table->dropColumn('image');
     }
 };

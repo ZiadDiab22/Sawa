@@ -10,6 +10,7 @@ class VehicleType extends Model
 
     protected $fillable = [
         'name',
+        'image',
         'base_fare',
         'per_km',
         'per_minute',
