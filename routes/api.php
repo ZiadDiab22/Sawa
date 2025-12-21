@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AboutUsController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Admin\CityController;
 use App\Http\Controllers\Api\Admin\AdminController;
@@ -78,3 +79,19 @@ Route::prefix('admin')->group(function () {
         Route::get('/drivers/approved', [DriverApprovalController::class, 'approvedDrivers']);
     });
 });
+
+
+//rider and driver
+ Route::middleware(['auth:sanctum'])->group(function () {
+Route::get('show', [AboutUsController::class, 'show']);
+
+    });
+
+//Admin
+Route::middleware(['auth:sanctum'])
+    ->prefix('admin')
+    ->group(function () {
+        Route::post('updateAboutUs', [AboutUsController::class, 'update']);
+        Route::post('storeAboutUs', [AboutUsController::class, 'store']);
+
+    });
