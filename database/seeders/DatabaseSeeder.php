@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             AdminSeeder::class,
             VehicleMakeSeeder::class,
+            VehicleTypeSeeder::class,
         ]);
     }
 }

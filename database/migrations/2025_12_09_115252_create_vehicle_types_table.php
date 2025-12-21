@@ -14,10 +14,12 @@ return new class extends Migration
         Schema::create('vehicle_types', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->decimal('base_fare', 10, 2);
-            $table->decimal('per_km', 10, 2);
+            $table->boolean('is_active')->default(false);
+            $table->decimal('base_fare', 10, 2)->nullable();
+            $table->decimal('per_km', 10, 2)->nullable();
             $table->decimal('per_minute', 10, 2)->nullable();
-            $table->decimal('minimum_fare', 10, 2);
+            $table->decimal('minimum_fare', 10, 2)->nullable();
+            $table->decimal('cost_increase_percentage', 10, 2)->nullable();
         });
     }
 

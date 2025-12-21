@@ -13,7 +13,9 @@ class VehicleType extends Model
         'base_fare',
         'per_km',
         'per_minute',
-        'minimum_fare'
+        'minimum_fare',
+        'cost_increase_percentage',
+        'is_active'
     ];
 
     public function drivers()
