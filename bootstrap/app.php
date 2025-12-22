@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'check_admin' => \App\Http\Middleware\CheckAdmin::class,
             'check_driver' => \App\Http\Middleware\CheckDriver::class,
+            'driver.commission.check' => \App\Http\Middleware\CheckDriverCommissionStatus::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

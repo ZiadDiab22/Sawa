@@ -11,15 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('driver_commissions', function (Blueprint $table) {
+        Schema::create('driver_profits', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('driver_id')
-                ->constrained('driver_profiles')
+            $table->foreignId('user_id')
+                ->constrained('users')
                 ->cascadeOnDelete();
 
-            $table->decimal('percentage', 5, 2)->nullable();
-            $table->decimal('fixed_fee', 10, 2)->nullable();
+            $table->foreignId('ride_id')
+                ->constrained('rides')
+                ->cascadeOnDelete();
+
+            $table->decimal('amount', 10, 2);
 
             $table->timestamps();
         });
@@ -30,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('driver_commissions');
+        Schema::dropIfExists('driver_profits');
     }
 };
