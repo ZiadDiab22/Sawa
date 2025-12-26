@@ -23,6 +23,10 @@ return new class extends Migration
             $table->decimal('drop_lat', 10, 7)->nullable();
             $table->decimal('drop_lng', 10, 7)->nullable();
 
+            $table->decimal('distance_km', 8, 2)->nullable();
+            $table->integer('price')->nullable();
+            $table->integer('duration_minutes')->nullable();
+
             $table->foreignId('pickup_zone_id')
                 ->nullable()
                 ->constrained('zones')
