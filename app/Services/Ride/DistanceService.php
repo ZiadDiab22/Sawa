@@ -2,6 +2,7 @@
 
 namespace App\Services\Ride;
 
+use App\Models\RideRequestResponse;
 use Illuminate\Support\Facades\DB;
 
 class DistanceService
@@ -88,5 +89,18 @@ class DistanceService
     return DB::table('settings')
       ->where('key', $key)
       ->value('value');
+  }
+
+  public function skip(int $rideRequestId, int $driverId)
+  {
+    return RideRequestResponse::updateOrCreate(
+      [
+        'ride_request_id' => $rideRequestId,
+        'driver_id'       => $driverId,
+      ],
+      [
+        'status' => 'skipped',
+      ]
+    );
   }
 }

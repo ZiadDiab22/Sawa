@@ -26,6 +26,8 @@ return new class extends Migration
                 ->default('pending');
 
             $table->timestamps();
+
+            $table->unique(['ride_request_id', 'driver_id']);
         });
     }
 
