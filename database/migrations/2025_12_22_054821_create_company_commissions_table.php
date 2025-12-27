@@ -9,32 +9,32 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
     {
-        Schema::create('wallet_transactions', function (Blueprint $table) {
+        Schema::create('company_commissions', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId('user_id')
                 ->constrained('users')
                 ->cascadeOnDelete();
 
-            $table->foreignId('employee_id')
-                ->nullable()
-                ->constrained('users')
-                ->nullOnDelete();
+            $table->foreignId('ride_id')
+                ->constrained('rides')
+                ->cascadeOnDelete();
 
-            $table->decimal('amount', 12, 2);
+            $table->decimal('amount', 10, 2);
+
+            $table->boolean('is_collected')->default(false);
 
             $table->timestamps();
         });
     }
-
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('wallet_transactions');
+        Schema::dropIfExists('company_commissions');
     }
 };

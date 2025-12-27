@@ -32,6 +32,7 @@ return new class extends Migration
             $table->decimal('end_lng', 10, 7)->nullable();
 
             $table->decimal('distance_km', 8, 2)->nullable();
+            $table->integer('price')->nullable();
             $table->integer('duration_minutes')->nullable();
 
             $table->enum('status', ['ongoing', 'completed', 'cancelled'])->default('ongoing');

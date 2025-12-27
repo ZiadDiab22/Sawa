@@ -14,6 +14,9 @@ class RideRequest extends Model
         'drop_lng',
         'pickup_zone_id',
         'drop_zone_id',
+        'distance_km',
+        'price',
+        'duration_minutes',
         'vehicle_type_id',
         'status',
     ];

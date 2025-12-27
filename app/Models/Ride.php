@@ -16,6 +16,7 @@ class Ride extends Model
         'end_lng',
         'distance_km',
         'duration_minutes',
+        'price',
         'status',
         'code',
         'promo_code_id',

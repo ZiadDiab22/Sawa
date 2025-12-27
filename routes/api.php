@@ -13,17 +13,19 @@ use App\Http\Controllers\Api\Passenger\ProfileController;
 use App\Http\Controllers\Api\Driver\DriverRatingController;
 use App\Http\Controllers\Api\Admin\DriverApprovalController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
+use App\Http\Controllers\Api\Ride\RideRequestController;
 
 Route::prefix('user')->group(function () {
     Route::post('/register', [UserController::class, 'register']);
     Route::post('/login', [UserController::class, 'login']);
     Route::post('/verifyOtp', [AuthController::class, 'verifyOtp']);
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'check_user'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('rating', [DriverRatingController::class, 'store']);
         Route::put('rating/{id}', [DriverRatingController::class, 'update']);
         Route::delete('rating/{id}', [DriverRatingController::class, 'destroy']);
+        Route::post('/ride-request/add', [RideRequestController::class, 'store']);
     });
 });
 
@@ -43,7 +45,8 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::get('/show', [DriverProfileController::class, 'show']);
     Route::post('/update/{id}', [DriverProfileController::class, 'update']);
     Route::post('/store', [DriverProfileController::class, 'store']);
-    Route::put('/active', [DriverController::class, 'toggleStatus'])->middleware(['check_driver']);
+    Route::put('/active', [DriverController::class, 'toggleStatus'])->middleware(['check_driver', 'driver.commission.check']);
+    Route::post('/ride-request/skip', [RideRequestController::class, 'skip'])->middleware(['check_driver']);
 });
 
 Route::middleware(['auth:sanctum'])->prefix('account')->group(function () {
@@ -80,10 +83,9 @@ Route::prefix('admin')->group(function () {
 
 
 //rider and driver
- Route::middleware(['auth:sanctum'])->group(function () {
-Route::get('show', [AboutUsController::class, 'show']);
-
-    });
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('show', [AboutUsController::class, 'show']);
+});
 
 //Admin
 Route::middleware(['auth:sanctum'])
@@ -91,5 +93,4 @@ Route::middleware(['auth:sanctum'])
     ->group(function () {
         Route::post('updateAboutUs', [AboutUsController::class, 'update']);
         Route::post('storeAboutUs', [AboutUsController::class, 'store']);
-
     });
