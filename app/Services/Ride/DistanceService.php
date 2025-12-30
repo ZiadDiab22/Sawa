@@ -2,11 +2,20 @@
 
 namespace App\Services\Ride;
 
+use App\Models\RideRequest;
 use App\Models\RideRequestResponse;
+use App\Repositories\Ride\RideRequestRepository;
 use Illuminate\Support\Facades\DB;
 
 class DistanceService
 {
+
+  protected RideRequestRepository $repo;
+
+  public function __construct(RideRequestRepository $repo)
+  {
+    $this->repo = $repo;
+  }
 
   public function calculateKm(
     float $lat1,
@@ -102,5 +111,30 @@ class DistanceService
         'status' => 'skipped',
       ]
     );
+  }
+
+  public function accept(int $rideRequestId, int $driverId)
+  {
+    return DB::transaction(function () use ($rideRequestId, $driverId) {
+
+      $request = RideRequest::lockForUpdate()->findOrFail($rideRequestId);
+
+      if ($request->status === 'accepted') {
+        throw new \Exception('Ride request already accepted');
+      }
+
+      $request->update(['status' => 'accepted']);
+
+      return $this->repo->createFromRequest(
+        $request,
+        $driverId,
+        $this->generateCode()
+      );
+    });
+  }
+
+  private function generateCode(): string
+  {
+    return (string) random_int(1000, 9999);
   }
 }

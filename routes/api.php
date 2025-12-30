@@ -25,7 +25,7 @@ Route::prefix('user')->group(function () {
         Route::post('rating', [DriverRatingController::class, 'store']);
         Route::put('rating/{id}', [DriverRatingController::class, 'update']);
         Route::delete('rating/{id}', [DriverRatingController::class, 'destroy']);
-        Route::post('/ride-request/add', [RideRequestController::class, 'store']);
+        Route::post('/ride-request', [RideRequestController::class, 'store']);
     });
 });
 
@@ -47,6 +47,7 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::post('/store', [DriverProfileController::class, 'store']);
     Route::put('/active', [DriverController::class, 'toggleStatus'])->middleware(['check_driver', 'driver.commission.check']);
     Route::post('/ride-request/skip', [RideRequestController::class, 'skip'])->middleware(['check_driver']);
+    Route::post('/ride-request/accept', [RideRequestController::class, 'accept'])->middleware(['check_driver']);
 });
 
 Route::middleware(['auth:sanctum'])->prefix('account')->group(function () {

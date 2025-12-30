@@ -35,7 +35,7 @@ return new class extends Migration
             $table->integer('price')->nullable();
             $table->integer('duration_minutes')->nullable();
 
-            $table->enum('status', ['ongoing', 'completed', 'cancelled'])->default('ongoing');
+            $table->enum('status', ['driver_on_way', 'on_going', 'completed', 'cancelled'])->default('driver_on_way');
 
             $table->string('code')->nullable();
 
