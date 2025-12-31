@@ -30,6 +30,10 @@ class SettingSeeder extends Seeder
                 'key' => 'company_commission_percentage',
                 'value' => '20',
             ],
+            [
+                'key' => 'LE',
+                'value' => '900000',
+            ],
         ]);
     }
 }

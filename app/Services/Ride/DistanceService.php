@@ -5,16 +5,19 @@ namespace App\Services\Ride;
 use App\Models\RideRequest;
 use App\Models\RideRequestResponse;
 use App\Repositories\Ride\RideRequestRepository;
+use App\Repositories\Ride\RideStatusHistoryRepository;
 use Illuminate\Support\Facades\DB;
 
 class DistanceService
 {
 
   protected RideRequestRepository $repo;
+  protected RideStatusHistoryRepository $histories;
 
-  public function __construct(RideRequestRepository $repo)
+  public function __construct(RideRequestRepository $repo, RideStatusHistoryRepository $histories)
   {
     $this->repo = $repo;
+    $this->histories = $histories;
   }
 
   public function calculateKm(
@@ -125,11 +128,22 @@ class DistanceService
 
       $request->update(['status' => 'accepted']);
 
-      return $this->repo->createFromRequest(
+
+      $ride = $this->repo->createFromRequest(
         $request,
         $driverId,
         $this->generateCode()
       );
+
+      $this->histories->create(
+        $ride->id,
+        null,
+        'driver_on_way',
+        'driver',
+        $driverId
+      );
+
+      return $ride;
     });
   }
 
