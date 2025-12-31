@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Passenger\ProfileController;
 use App\Http\Controllers\Api\Driver\DriverRatingController;
 use App\Http\Controllers\Api\Admin\DriverApprovalController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
+use App\Http\Controllers\Api\Driver\DriverWalletController;
 use App\Http\Controllers\Api\Ride\RideController;
 use App\Http\Controllers\Api\Ride\RideRequestController;
 
@@ -74,6 +75,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/vehicle-types/index', [VehicleTypeController::class, 'index']);
         //drivers
         Route::put('/driver/accept/{id}', [DriverController::class, 'accept']);
+        Route::post('/driver/{id}/wallet/add', [DriverWalletController::class, 'add']);
     });
 
     Route::middleware(['auth:sanctum'])->group(function () {

@@ -82,4 +82,16 @@ class DriverRepository
         $driver->save();
         return $driver;
     }
+
+    public function decrementWallet(int $driverId, float $amount): void
+    {
+        DriverProfile::where('user_id', $driverId)
+            ->decrement('wallet', $amount);
+    }
+
+    public function incrementWallet(int $driverId, float $amount): void
+    {
+        DriverProfile::where('user_id', $driverId)
+            ->increment('wallet', $amount);
+    }
 }

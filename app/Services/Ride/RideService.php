@@ -97,6 +97,8 @@ class RideService
       $companyAmount = $ride->price * ($commissionPercent / 100);
       $driverAmount  = $ride->price - $companyAmount;
 
+      $this->drivers->decrementWallet($driverId, $companyAmount);
+
       $this->profits->createDriverProfit($driverId, $ride->id, $driverAmount);
       $this->profits->createCompanyCommission($driverId, $ride->id, $companyAmount);
 

@@ -47,6 +47,7 @@ return new class extends Migration
             $table->string('license_document')->nullable();
             $table->string('insurance_document')->nullable();
             $table->json('vehicle_images')->nullable();
+            $table->decimal('wallet', 10, 2)->default(0);
             $table->enum('status', ['pending', 'approved', 'suspended'])->default('pending');
             $table->enum('is_status', ['active', 'inactive', 'banned'])->default('inactive');
 
