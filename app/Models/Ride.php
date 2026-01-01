@@ -32,8 +32,6 @@ class Ride extends Model
         'duration_minutes' => 'integer',
     ];
 
-    /** Relations */
-
     public function request()
     {
         return $this->belongsTo(RideRequest::class, 'ride_request_id');
@@ -44,9 +42,9 @@ class Ride extends Model
         return $this->belongsTo(User::class, 'driver_id');
     }
 
-    public function passenger()
+    public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
 
     public function promoCode()

@@ -44,11 +44,7 @@ return new class extends Migration
 
             $table->enum('status', [
                 'pending',
-                'searching_driver',
-                'driver_assigned',
-                'cancelled',
-                'expired',
-                'completed'
+                'accepted',
             ])->default('pending');
 
             $table->timestamps();
