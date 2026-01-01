@@ -60,7 +60,7 @@ class DriverRepository
 
     public function updateStatus(int $id, string $status): void
     {
-        DriverProfile::where('id', $id)->update([
+        DriverProfile::where('user_id', $id)->update([
             'status' => $status
         ]);
     }
@@ -82,5 +82,17 @@ class DriverRepository
         $driver->status = 'approved';
         $driver->save();
         return $driver;
+    }
+
+    public function decrementWallet(int $driverId, float $amount): void
+    {
+        DriverProfile::where('user_id', $driverId)
+            ->decrement('wallet', $amount);
+    }
+
+    public function incrementWallet(int $driverId, float $amount): void
+    {
+        DriverProfile::where('user_id', $driverId)
+            ->increment('wallet', $amount);
     }
 }

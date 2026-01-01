@@ -49,4 +49,21 @@ class RideRequestController extends Controller
             'data' => $response,
         ], 201);
     }
+
+    public function accept(Request $request, DistanceService $service)
+    {
+        $request->validate([
+            'ride_request_id' => ['required', 'integer', 'exists:ride_requests,id']
+        ]);
+
+        $response = $service->accept(
+            $request->ride_request_id,
+            Auth::id()
+        );
+
+        return response()->json([
+            'status' => true,
+            'data' => $response->makeHidden('code'),
+        ], 201);
+    }
 }

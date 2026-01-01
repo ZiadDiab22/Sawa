@@ -24,6 +24,7 @@ class DriverProfile extends Model
         'vehicle_images',
         'status',
         'is_status',
+        'wallet',
     ];
 
     protected $casts = [
@@ -51,10 +52,10 @@ class DriverProfile extends Model
     //     return $this->hasMany(DriverDocument::class, 'driver_id');
     // }
 
-    public function commissions()
-    {
-        return $this->hasMany(DriverCommission::class, 'driver_id');
-    }
+    // public function commissions()
+    // {
+    //     return $this->hasMany(::class, 'driver_id');
+    // }
 
     public function locations()
     {
