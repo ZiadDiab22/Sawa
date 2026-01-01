@@ -18,8 +18,8 @@ return new class extends Migration
                 ->constrained('driver_profiles')
                 ->cascadeOnDelete();
 
-            $table->enum('type', ['license', 'id_card', 'insurance']);
-            $table->string('file_path');
+            $table->enum('type', ['license', 'driver_id', 'insurance']);
+            $table->json('file_path');
             $table->date('expires_at')->nullable();
 
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');

@@ -2,8 +2,9 @@
 
 namespace App\Services\User\Driver;
 
-use App\Repositories\DriverRepository;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use App\Repositories\DriverRepository;
 
 class ProfileService
 {
@@ -15,21 +16,30 @@ class ProfileService
         CREATE
     ========================== */
     public function createProfile(int $userId, array $data): array
-    {
-        $data['user_id'] = $userId;
+{
+    $data['user_id'] = $userId;
 
-        $data = $this->handleUploads($data);
 
-        $profile = $this->DriverRepository->create($data);
+    $data = $this->handleUploads($data);
 
-        return $this->formatResponse($profile);
-    }
+    $profile = $this->DriverRepository->updateOrCreate($userId, $data);
+
+    return $this->formatResponse($profile);
+}
+
 
     /* =========================
         UPDATE
     ========================== */
     public function updateProfile(int $userId, array $data): array
     {
+  $user = User::findOrFail($userId);
+
+    $user->update([
+        'name'  => $data['name']  ?? $user->name,
+        'email' => $data['email'] ?? $user->email,
+        'phone' => $data['phone'] ?? $user->phone,
+    ]);
         $data = $this->handleUploads($data);
 
         $profile = $this->DriverRepository
@@ -79,39 +89,47 @@ class ProfileService
     /* =========================
         RESPONSE FORMAT
     ========================== */
-    private function formatResponse($profile): array
-    {
-        return [
-            'id'    => $profile->id,
-            'name'  => $profile->name,
-            'email' => $profile->email,
-            'phone' => $profile->phone,
-            'gender'=> $profile->gender,
+  private function formatResponse($profile): array
+{
+    return [
+        'id' => $profile->id,
 
-            'vehicle_type' => $profile->vehicleType?->name,
-            'vehicle_make' => $profile->vehicleMake?->name,
+        // القيم تُجلب من جدول users عبر التوكن
+        'name'  => $profile->user->name,
+        'email' => $profile->user->email,
+        'phone' => $profile->user->phone,
 
-            'vehicle_model' => $profile->vehicle_model,
-            'vehicle_year'  => $profile->vehicle_year,
-            'vehicle_color' => $profile->vehicle_color,
-            'vehicle_plate_number' => $profile->vehicle_plate_number,
+        'gender' => $profile->gender,
 
-            'vehicle_document' => $profile->vehicle_document
-                ? asset('storage/'.$profile->vehicle_document)
-                : null,
+        'vehicle_type' => $profile->vehicleType?->name,
+        'vehicle_make' => $profile->vehicleMake?->name,
 
-            'license_document' => $profile->license_document
-                ? asset('storage/'.$profile->license_document)
-                : null,
+        'vehicle_model' => $profile->vehicle_model,
+        'vehicle_year'  => $profile->vehicle_year,
+        'vehicle_color' => $profile->vehicle_color,
+        'vehicle_plate_number' => $profile->vehicle_plate_number,
 
-            'insurance_document' => $profile->insurance_document
-                ? asset('storage/'.$profile->insurance_document)
-                : null,
+        'vehicle_document' => $profile->vehicle_document
+            ? asset('storage/'.$profile->vehicle_document)
+            : null,
 
-            'vehicle_images' => collect($profile->vehicle_images)
-                ->map(fn ($img) => asset('storage/'.$img)),
+        'license_document' => $profile->license_document
+            ? asset('storage/'.$profile->license_document)
+            : null,
 
-            'created_at' => $profile->created_at,
-        ];
-    }
+        'insurance_document' => $profile->insurance_document
+            ? asset('storage/'.$profile->insurance_document)
+            : null,
+
+        'vehicle_images' => $profile->vehicle_images
+            ? collect($profile->vehicle_images)->map(fn($img) => asset('storage/'.$img))
+            : [],
+
+        'status' => $profile->status,
+        'is_status' => $profile->is_status,
+        'created_at' => $profile->created_at,
+    ];
+}
+
+
 }

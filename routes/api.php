@@ -2,18 +2,20 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\OtpController;
 use App\Http\Controllers\Api\AboutUsController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Admin\CityController;
 use App\Http\Controllers\Api\Admin\AdminController;
 use App\Http\Controllers\Api\Driver\DriverController;
 use App\Http\Controllers\Api\Passenger\UserController;
+use App\Http\Controllers\Api\Ride\RideRequestController;
 use App\Http\Controllers\Api\Admin\VehicleTypeController;
 use App\Http\Controllers\Api\Passenger\ProfileController;
 use App\Http\Controllers\Api\Driver\DriverRatingController;
 use App\Http\Controllers\Api\Admin\DriverApprovalController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
-use App\Http\Controllers\Api\Ride\RideRequestController;
+use App\Http\Controllers\Api\Driver\DriverDocumentController;
 
 Route::prefix('user')->group(function () {
     Route::post('/register', [UserController::class, 'register']);
@@ -41,9 +43,10 @@ Route::middleware('auth:sanctum')->prefix('user')->group(function () {
 });
 
 //Driver
+
 Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::get('/show', [DriverProfileController::class, 'show']);
-    Route::post('/update/{id}', [DriverProfileController::class, 'update']);
+    Route::post('/update', [DriverProfileController::class, 'update']);
     Route::post('/store', [DriverProfileController::class, 'store']);
     Route::put('/active', [DriverController::class, 'toggleStatus'])->middleware(['check_driver', 'driver.commission.check']);
     Route::post('/ride-request/skip', [RideRequestController::class, 'skip'])->middleware(['check_driver']);
@@ -94,3 +97,16 @@ Route::middleware(['auth:sanctum'])
         Route::post('updateAboutUs', [AboutUsController::class, 'update']);
         Route::post('storeAboutUs', [AboutUsController::class, 'store']);
     });
+
+//  documents
+
+Route::middleware('auth:sanctum')->group(function(){
+    Route::post('/driver/documents',[DriverDocumentController::class,'store']);
+    Route::post('/driver/documents/{id}',[DriverDocumentController::class,'update']);
+    Route::get('/driver/documents',[DriverDocumentController::class,'show']);
+    //Admin
+     Route::put('/admin/driver-documents/{id}/approve', [DriverDocumentController::class,'approve'])->middleware(['check_admin']);
+    Route::put('/admin/driver-documents/{id}/reject', [DriverDocumentController::class,'reject'])->middleware(['check_admin']);
+      Route::get('/admin/driver-documents/pending', [DriverDocumentController::class,'pendingDocuments'])->middleware(['check_admin']);
+});
+

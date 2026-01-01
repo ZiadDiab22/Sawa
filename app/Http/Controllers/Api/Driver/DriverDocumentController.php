@@ -1,37 +1,85 @@
 <?php
-
 namespace App\Http\Controllers\Api\Driver;
 
 use App\Http\Controllers\Controller;
-use App\Services\Driver\DriverDocumentService;
 use Illuminate\Http\Request;
+use App\Services\User\Driver\DriverDocumentService;
 
 class DriverDocumentController extends Controller
 {
     public function __construct(
-        protected DriverDocumentService $service
+        protected DriverDocumentService $driverDocumentService
     ) {}
 
-    // GET /api/driver/documents
-    public function index()
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'type'  => 'required|in:license,driver_id,insurance',
+            'file_path' => 'required|array|size:2',
+            'file_path.*' => 'file|mimes:jpg,jpeg,png,pdf|max:4096',
+            'expires_at' => 'nullable|date'
+        ]);
+
+        $doc = $this->driverDocumentService->store($data);
+
+        return response()->json([
+            'message'=>'Document uploaded successfully',
+            'data'=>$doc
+        ],201);
+    }
+
+    public function update(Request $request, int $id)
+    {
+        $data = $request->validate([
+            'file_path' => 'sometimes|array|size:2',
+            'file_path.*' => 'file|mimes:jpg,jpeg,png,pdf|max:4096',
+            'expires_at'=>'nullable|date',
+            'status'=>'sometimes|in:pending,approved,rejected'
+        ]);
+
+        $doc = $this->driverDocumentService->update($id,$data);
+
+        return response()->json([
+            'message'=>'Document updated successfully',
+            'data'=>$doc
+        ]);
+    }
+
+    public function show()
     {
         return response()->json(
-            $this->service->list(auth()->id())
+            $this->driverDocumentService->showAll()
         );
     }
 
-    // POST /api/driver/documents
-    public function store(Request $request)
+    //Admin
+
+      public function approve(int $id)
     {
-        $request->validate([
-            'type' => 'required|in:license,id_card,insurance',
-            'file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:4096',
-            'expires_at' => 'nullable|date|after:today',
-        ]);
+        $doc = $this->driverDocumentService->approveDocument($id);
 
         return response()->json([
-            'message' => 'Document uploaded successfully',
-            'data' => $this->service->upload(auth()->id(), $request->all())
+            'message' => 'Document approved successfully',
+            'data' => $doc
+        ]);
+    }
+    public function reject(int $id)
+    {
+        $doc = $this->driverDocumentService->rejectDocument($id);
+
+        return response()->json([
+            'message' => 'Document rejected successfully',
+            'data' => $doc
+        ]);
+    }
+
+     public function pendingDocuments()
+    {
+        $docs = $this->driverDocumentService->getPendingDocuments();
+
+        return response()->json([
+            'message' => 'Pending documents retrieved successfully',
+            'data' => $docs
         ]);
     }
 }

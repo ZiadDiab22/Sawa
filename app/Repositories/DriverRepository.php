@@ -57,6 +57,7 @@ class DriverRepository
         return DriverProfile::with('user')->findOrFail($id);
     }
 
+
     public function updateStatus(int $id, string $status): void
     {
         DriverProfile::where('id', $id)->update([

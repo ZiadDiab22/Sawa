@@ -51,9 +51,11 @@ class DriverProfileController extends Controller
     private function validateData(Request $request, bool $isUpdate = false): array
     {
         return $request->validate([
-            'name'  => 'required|string|max:255',
-            'email' => 'required|email',
-            'phone' => 'required|string',
+
+
+        'name'  => 'sometimes|required|string|max:255',
+        'email' => 'sometimes|required|email|max:255|unique:users,email,' . auth()->id(),
+        'phone' => 'sometimes|required|string|max:20|unique:users,phone,' . auth()->id(),
 
             'gender' => 'nullable|in:male,female',
 

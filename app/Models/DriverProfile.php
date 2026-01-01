@@ -9,9 +9,7 @@ class DriverProfile extends Model
 {
 
     protected $fillable = [
-        'name',
-        'email',
-        'phone',
+      
         'gender',
         'user_id',
         'vehicle_type_id',
