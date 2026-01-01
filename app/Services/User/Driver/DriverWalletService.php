@@ -24,45 +24,21 @@ class DriverWalletService
 
       $this->drivers->incrementWallet($driverId, $amount);
 
-      $data = ["user_id" => $driverId, "employee_id" => Auth::id(), "amount" => $amount];
-      WalletTransaction::create($data);
+      WalletTransaction::create([
+        "user_id" => $driverId,
+        "employee_id" => Auth::id(),
+        "amount" => $amount
+      ]);
 
-      $rows = $this->unCollectedForDriver($driverId);
+      $LE = (int) Setting::where('key', 'LE')->value('value');
 
-      foreach ($rows as $row) {
-        if ($amount <= 0) {
-          break;
-        }
-
-        if ($amount >= $row->amount) {
-          $amount -= $row->amount;
-          $this->markCollected($row->id);
-        }
-      }
-
-      $LE = (float) Setting::where('key', 'LE')->value('value');
-
-      $wallet = (float) DriverProfile::where('id', $driverId)->value('wallet');
+      $wallet = (int) DriverProfile::where('user_id', $driverId)->value('wallet');
 
       if ($wallet > - (20 * $LE)) {
-        $this->drivers->updateStatus($driverId, 'accepted');
+        $this->drivers->updateStatus($driverId, 'approved');
       }
 
       return DriverProfile::where('user_id', $driverId)->get(['id', 'user_id', 'wallet', 'status']);
     });
-  }
-
-  public function unCollectedForDriver(int $driverId)
-  {
-    return CompanyCommission::where('user_id', $driverId)
-      ->where('is_collected', false)
-      ->orderBy('created_at')
-      ->get();
-  }
-
-  public function markCollected(int $id): void
-  {
-    CompanyCommission::where('id', $id)
-      ->update(['is_collected' => true]);
   }
 }

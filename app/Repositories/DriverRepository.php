@@ -59,7 +59,7 @@ class DriverRepository
 
     public function updateStatus(int $id, string $status): void
     {
-        DriverProfile::where('id', $id)->update([
+        DriverProfile::where('user_id', $id)->update([
             'status' => $status
         ]);
     }

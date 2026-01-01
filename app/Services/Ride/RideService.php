@@ -2,6 +2,7 @@
 
 namespace App\Services\Ride;
 
+use App\Models\DriverProfile;
 use App\Models\Ride;
 use App\Models\Setting;
 use App\Repositories\DriverRepository;
@@ -71,9 +72,9 @@ class RideService
         throw new \Exception('unauthorized - this ride for another driver');
       }
 
-      if ($ride->status !== 'on_going') {
-        throw new \Exception('Ride cannot be completed');
-      }
+      // if ($ride->status !== 'on_going') {
+      //   throw new \Exception('Ride cannot be completed');
+      // }
 
       if ($ride->code !== $data['code']) {
         throw new \Exception('Invalid code');
@@ -92,7 +93,7 @@ class RideService
       );
 
       $commissionPercent = (float) Setting::where('key', 'company_commission_percentage')->value('value');
-      $LE = (float) Setting::where('key', 'LE')->value('value');
+      $LE = (int) Setting::where('key', 'LE')->value('value');
 
       $companyAmount = $ride->price * ($commissionPercent / 100);
       $driverAmount  = $ride->price - $companyAmount;
@@ -102,9 +103,9 @@ class RideService
       $this->profits->createDriverProfit($driverId, $ride->id, $driverAmount);
       $this->profits->createCompanyCommission($driverId, $ride->id, $companyAmount);
 
-      $totalDue = $this->profits->driverTotalCompanyDebt($driverId);
+      $wallet = (int) DriverProfile::where('user_id', $driverId)->value('wallet');
 
-      if ($totalDue >= (20 * $LE)) {
+      if ($wallet <= - (20 * $LE)) {
         $this->drivers->updateStatus($driverId, 'suspended');
       }
 
