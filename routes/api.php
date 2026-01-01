@@ -15,7 +15,6 @@ use App\Http\Controllers\Api\Passenger\ProfileController;
 use App\Http\Controllers\Api\Driver\DriverRatingController;
 use App\Http\Controllers\Api\Admin\DriverApprovalController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
-use App\Http\Controllers\Api\Ride\RideRequestController;
 
 Route::prefix('user')->group(function () {
     Route::post('/register', [UserController::class, 'register']);
