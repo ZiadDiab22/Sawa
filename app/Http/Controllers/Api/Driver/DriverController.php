@@ -32,28 +32,28 @@ class DriverController extends Controller
             'data' => $result
         ], 201);
     }
-
-    public function login(Request $request)
+ public function login(Request $request)
     {
         $request->validate([
             'phone' => 'required|string|exists:users,phone',
         ]);
 
         $user = User::where('phone', $request->phone)->first();
-        $hasRole = $user->roles()->where('role_id', 2)->exists();
 
-        if (!$hasRole) {
+        if (!$user->roles()->where('role_id', 2)->exists()) {
             return response()->json([
                 'status' => false,
                 'message' => 'this api for accepted drivers only',
             ], 403);
         }
 
+        // --------------------------------------------
         $status = $this->authService->sendOtp($request->phone);
+        // --------------------------------------------
 
         return response()->json([
             'status' => $status,
-            'message' => 'Message will be sent to your phone number',
+            'message' => 'OTP will be sent to your email address',
         ]);
     }
 

@@ -20,8 +20,7 @@ class UserController extends Controller
         $this->registerService = $registerService;
         $this->authService = $authService;
     }
-
-    public function register(UserRegisterRequest $request)
+ public function register(UserRegisterRequest $request)
     {
         $this->registerService->register($request->validated());
 
@@ -29,7 +28,7 @@ class UserController extends Controller
 
         return response()->json([
             'status' => $status,
-            'message' => 'Message will be sent to your phone number',
+            'message' => 'OTP will be sent to your email address',
         ]);
     }
 

@@ -19,7 +19,6 @@ class AuthController extends Controller
         $this->registerService = $registerService;
         $this->authService = $authService;
     }
-
     public function verifyOtp(Request $request)
     {
         $request->validate([

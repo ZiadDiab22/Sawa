@@ -1,9 +1,9 @@
 <?php
-
 namespace App\Services\Auth;
 
 use App\Models\User;
 use App\Repositories\UserRepository;
+use Illuminate\Support\Facades\Mail;
 
 class AuthService
 {
@@ -17,16 +17,15 @@ class AuthService
   public function sendOtp(string $phone): bool
   {
     $user = $this->userRepository->findByPhone($phone);
-
-    if (!$user) {
-      throw new \Exception('User not found');
-    }
+    if (!$user) throw new \Exception('User not found');
 
     $otp = rand(100000, 999999);
     $this->userRepository->updateOtp($user, $otp);
 
-    // هنا يمكنك إرسال OTP عبر SMS أو أي خدمة خارجية
-    // SmsService::send($phone, "Your OTP is: $otp");
+    // 🔧 تعديل: إرسال OTP إلى الإيميل بعد جلبه عبر رقم الهاتف (بدل SMS)
+    // --------------------------------------------
+    Mail::to($user->email)->send(new \App\Mail\OtpMail($otp, $user->name));
+    // --------------------------------------------
 
     return true;
   }
@@ -34,22 +33,16 @@ class AuthService
   public function verifyOtp(string $phone, string $otp): string
   {
     $user = $this->userRepository->findByPhone($phone);
+    if (!$user) throw new \Exception('User not found');
 
-    if (!$user) {
-      throw new \Exception('User not found');
-    }
-
-    if ($user->otp !== $otp || now()->gt($user->otp_expire_at)) {
+    if ($user->otp !== $otp || now()->gt($user->otp_expire_at))
       throw new \Exception('Invalid or expired OTP');
-    }
 
     $this->userRepository->clearOtp($user);
     $user->is_verified = true;
     $user->save();
 
-    $token = $user->createToken('auth_token')->plainTextToken;
-
-    return $token;
+    return $user->createToken('auth_token')->plainTextToken;
   }
 
   public function logout($user): bool
@@ -61,11 +54,8 @@ class AuthService
   public function login($request)
   {
     $user = User::where('phone', $request['phone'])->first();
-    $hasRole = $user->roles()->where('role_id', 1)->exists();
-
-    if (!$hasRole) {
+    if (!$user->roles()->where('role_id', 1)->exists())
       throw new \Exception('this api for users ( passengers ) only');
-    }
 
     return $user->createToken('auth_token')->plainTextToken;
   }
