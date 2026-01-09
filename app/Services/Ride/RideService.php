@@ -72,9 +72,9 @@ class RideService
         throw new \Exception('unauthorized - this ride for another driver');
       }
 
-      // if ($ride->status !== 'on_going') {
-      //   throw new \Exception('Ride cannot be completed');
-      // }
+      if ($ride->status !== 'on_going') {
+        throw new \Exception('Ride cannot be completed');
+      }
 
       if ($ride->code !== $data['code']) {
         throw new \Exception('Invalid code');

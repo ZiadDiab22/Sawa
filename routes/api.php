@@ -14,7 +14,10 @@ use App\Http\Controllers\Api\Admin\VehicleTypeController;
 use App\Http\Controllers\Api\Passenger\ProfileController;
 use App\Http\Controllers\Api\Driver\DriverRatingController;
 use App\Http\Controllers\Api\Admin\DriverApprovalController;
+use App\Http\Controllers\Api\Driver\DriverDocumentController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
+use App\Http\Controllers\Api\Driver\DriverWalletController;
+use App\Http\Controllers\Api\Ride\RideController;
 
 Route::prefix('user')->group(function () {
     Route::post('/register', [UserController::class, 'register']);
@@ -27,6 +30,7 @@ Route::prefix('user')->group(function () {
         Route::put('rating/{id}', [DriverRatingController::class, 'update']);
         Route::delete('rating/{id}', [DriverRatingController::class, 'destroy']);
         Route::post('/ride-request', [RideRequestController::class, 'store']);
+        Route::post('/ride-request/{id}/cancel', [RideRequestController::class, 'cancel']);
     });
 });
 
@@ -103,13 +107,12 @@ Route::middleware(['auth:sanctum'])
 
 //  documents
 
-Route::middleware('auth:sanctum')->group(function(){
-    Route::post('/driver/documents',[DriverDocumentController::class,'store']);
-    Route::post('/driver/documents/{id}',[DriverDocumentController::class,'update']);
-    Route::get('/driver/documents',[DriverDocumentController::class,'show']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/driver/documents', [DriverDocumentController::class, 'store']);
+    Route::post('/driver/documents/{id}', [DriverDocumentController::class, 'update']);
+    Route::get('/driver/documents', [DriverDocumentController::class, 'show']);
     //Admin
-     Route::put('/admin/driver-documents/{id}/approve', [DriverDocumentController::class,'approve'])->middleware(['check_admin']);
-    Route::put('/admin/driver-documents/{id}/reject', [DriverDocumentController::class,'reject'])->middleware(['check_admin']);
-      Route::get('/admin/driver-documents/pending', [DriverDocumentController::class,'pendingDocuments'])->middleware(['check_admin']);
+    Route::put('/admin/driver-documents/{id}/approve', [DriverDocumentController::class, 'approve'])->middleware(['check_admin']);
+    Route::put('/admin/driver-documents/{id}/reject', [DriverDocumentController::class, 'reject'])->middleware(['check_admin']);
+    Route::get('/admin/driver-documents/pending', [DriverDocumentController::class, 'pendingDocuments'])->middleware(['check_admin']);
 });
-

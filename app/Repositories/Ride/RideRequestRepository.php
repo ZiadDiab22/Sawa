@@ -44,4 +44,16 @@ class RideRequestRepository
 
     return $ride;
   }
+
+  public function findForUser(int $id, int $userId): ?RideRequest
+  {
+    return RideRequest::where('id', $id)
+      ->where('user_id', $userId)
+      ->first();
+  }
+
+  public function updateStatus(RideRequest $rideRequest, string $status): void
+  {
+    $rideRequest->update(['status' => $status]);
+  }
 }

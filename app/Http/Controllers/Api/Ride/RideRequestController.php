@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Ride\CalculateRideRequest;
 use App\Repositories\Ride\RideRequestRepository;
 use App\Services\Ride\DistanceService;
+use App\Services\Ride\RideRequestService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -65,5 +66,15 @@ class RideRequestController extends Controller
             'status' => true,
             'data' => $response->makeHidden('code'),
         ], 201);
+    }
+
+    public function cancel(Request $request, int $id, RideRequestService $service)
+    {
+        $rideRequest = $service->cancel($id, Auth::id());
+
+        return response()->json([
+            'status' => true,
+            'data' => $rideRequest,
+        ]);
     }
 }
