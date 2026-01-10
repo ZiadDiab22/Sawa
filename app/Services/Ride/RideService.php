@@ -17,7 +17,7 @@ class RideService
     private RideRepository $rides,
     private RideStatusHistoryRepository $histories,
     private ProfitRepository $profits,
-    private DriverRepository $drivers
+    private DriverRepository $drivers,
   ) {}
 
   public function start(int $rideId, int $driverId)
@@ -110,6 +110,84 @@ class RideService
       }
 
       return $this->set($ride);
+    });
+  }
+
+  public function userCancel(int $id, int $userId)
+  {
+    return DB::transaction(function () use ($id, $userId) {
+
+      $ride = $this->rides->findForUser($id, $userId);
+
+      if (!$ride) {
+        throw new \Exception('This ride isnt for you or not exist');
+      }
+
+      if ($ride->status != 'driver_on_way') {
+        throw new \Exception('This ride cannot be cancelled in this status');
+      }
+
+      $oldStatus = $ride->status;
+
+      $this->rides->updateStatus($ride, 'cancelled');
+
+      $this->histories->create(
+        $ride->id,
+        $oldStatus,
+        'cancelled',
+        'passenger',
+        $userId
+      );
+
+      return $ride->refresh();
+    });
+  }
+
+  public function driverCancel(int $id, int $driverId)
+  {
+    return DB::transaction(function () use ($id, $driverId) {
+
+      $ride = $this->rides->findForDriver($id, $driverId);
+
+      if (!$ride) {
+        throw new \Exception('This ride isnt for you or not exist');
+      }
+
+      if ($ride->status != 'driver_on_way') {
+        throw new \Exception('This ride cannot be cancelled in this status');
+      }
+
+      $oldStatus = $ride->status;
+
+      $this->rides->updateStatus($ride, 'cancelled');
+
+      $this->histories->create(
+        $ride->id,
+        $oldStatus,
+        'cancelled',
+        'driver',
+        $driverId
+      );
+
+      $this->deductCancellationFee($driverId);
+
+      return $ride->refresh();
+    });
+  }
+
+  public function deductCancellationFee(int $driverId): void
+  {
+    DB::transaction(function () use ($driverId) {
+
+      $fee = (float) DB::table('settings')->where('key', 'cancelling_ride_fee')->value('value');
+
+      if ($fee <= 0) {
+        return;
+      }
+
+      DB::table('driver_profiles')
+        ->where('user_id', $driverId)
+        ->decrement('wallet', $fee);
     });
   }
 }

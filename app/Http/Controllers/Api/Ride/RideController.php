@@ -39,4 +39,24 @@ class RideController extends Controller
             'data' => $ride,
         ]);
     }
+
+    public function userCancel(int $id, RideService $service)
+    {
+        $ride = $service->userCancel($id, Auth::id());
+
+        return response()->json([
+            'status' => true,
+            'data' => $ride,
+        ]);
+    }
+
+    public function driverCancel(int $id, RideService $service)
+    {
+        $ride = $service->driverCancel($id, Auth::id());
+
+        return response()->json([
+            'status' => true,
+            'data' => $ride->makeHidden('code'),
+        ]);
+    }
 }

@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('new_status');
 
             $table->enum('changed_by_type', ['passenger', 'driver', 'system']);
+
             $table->foreignId('changed_by_id')
                 ->constrained('users')
                 ->cascadeOnDelete();

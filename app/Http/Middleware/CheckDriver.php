@@ -24,6 +24,7 @@ class CheckDriver
                 'message' => 'Unauthenticated'
             ], 401);
         }
+
         $isDriver = DB::table('user_roles')
             ->where('user_id', $user->id)
             ->where('role_id', 2)
