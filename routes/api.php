@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\Passenger\ProfileController;
 use App\Http\Controllers\Api\Driver\DriverRatingController;
 use App\Http\Controllers\Api\Admin\DriverApprovalController;
 use App\Http\Controllers\Api\Driver\DriverDocumentController;
+use App\Http\Controllers\Api\Driver\DriverHistoryController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
 use App\Http\Controllers\Api\Driver\DriverWalletController;
 use App\Http\Controllers\Api\Ride\RideController;
@@ -57,6 +58,7 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::post('/ride/start', [RideController::class, 'start'])->middleware(['check_driver']);
     Route::post('/ride/complete', [RideController::class, 'complete'])->middleware(['check_driver']);
     Route::post('/ride/{id}/cancel', [RideController::class, 'driverCancel']);
+    Route::get('/history', [DriverHistoryController::class, 'index'])->middleware(['check_driver']);
 });
 
 Route::middleware(['auth:sanctum'])->prefix('account')->group(function () {

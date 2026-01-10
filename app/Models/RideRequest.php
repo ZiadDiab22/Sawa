@@ -28,7 +28,7 @@ class RideRequest extends Model
         'drop_lng' => 'float',
     ];
 
-    public function passenger()
+    public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }

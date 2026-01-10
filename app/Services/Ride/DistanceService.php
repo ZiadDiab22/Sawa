@@ -143,6 +143,16 @@ class DistanceService
         $driverId
       );
 
+      RideRequestResponse::updateOrCreate(
+        [
+          'ride_request_id' => $rideRequestId,
+          'driver_id'       => $driverId,
+        ],
+        [
+          'status' => 'accepted',
+        ]
+      );
+
       return $ride;
     });
   }
