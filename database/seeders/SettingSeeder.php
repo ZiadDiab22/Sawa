@@ -36,7 +36,7 @@ class SettingSeeder extends Seeder
             ],
             [
                 'key' => 'cancelling_ride_fee',
-                'value' => '50000',
+                'value' => '60000',
             ],
         ]);
     }
