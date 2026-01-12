@@ -5,6 +5,7 @@ namespace App\Repositories\Ride;
 use App\Models\CompanyCommission;
 use App\Models\DriverProfit;
 use App\Models\Ride;
+use Carbon\Carbon;
 
 class ProfitRepository
 {
@@ -30,6 +31,14 @@ class ProfitRepository
   {
     return CompanyCommission::where('user_id', $driverId)
       ->where('is_collected', false)
+      ->sum('amount');
+  }
+
+  public function sumForDriverByDate(int $driverId, Carbon $date): float
+  {
+    return (float) DriverProfit::query()
+      ->where('user_id', $driverId)
+      ->whereDate('created_at', $date)
       ->sum('amount');
   }
 }

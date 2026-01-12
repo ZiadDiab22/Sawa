@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\DriverRating;
+use Carbon\Carbon;
 
 class DriverRatingRepository
 {
@@ -26,5 +27,13 @@ class DriverRatingRepository
   public function findById($id)
   {
     return DriverRating::findOrFail($id);
+  }
+
+  public function averageForDriverByDate(int $driverId, Carbon $date): float
+  {
+    return (float) DriverRating::query()
+      ->where('driver_id', $driverId)
+      ->whereDate('created_at', $date)
+      ->avg('rating') ?? 0;
   }
 }

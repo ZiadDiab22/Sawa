@@ -21,6 +21,14 @@ class DriverRatingController extends Controller
     {
         $ride = Ride::findOrFail($request->ride_id);
 
+        $userId = Auth::id();
+
+        if (DriverRating::where('ride_id', $ride->id)->where('user_id', $userId)->exists()) {
+            return response()->json([
+                'message' => 'You have already submitted a rating for this ride.'
+            ], 409);
+        }
+
         $data = $request->validated();
         $data['user_id'] = Auth::user()->id;
         $data['driver_id'] = $ride->driver_id;

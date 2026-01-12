@@ -3,6 +3,7 @@
 namespace App\Repositories\Ride;
 
 use App\Models\Ride;
+use Carbon\Carbon;
 
 class RideRepository
 {
@@ -25,5 +26,14 @@ class RideRepository
   public function updateStatus(Ride $ride, string $status): void
   {
     $ride->update(['status' => $status]);
+  }
+
+  public function countCompletedByDriverForDate(int $driverId, Carbon $date): int
+  {
+    return Ride::query()
+      ->where('driver_id', $driverId)
+      ->where('status', 'completed')
+      ->whereDate('created_at', $date)
+      ->count();
   }
 }

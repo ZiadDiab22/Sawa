@@ -169,21 +169,20 @@ class RideService
         $driverId
       );
 
-      $this->deductCancellationFee($driverId);
+      $fee = (float) DB::table('settings')->where('key', 'cancelling_ride_fee')->value('value');
+
+      if ($fee > 0) {
+        $this->deductCancellationFee($driverId, $fee);
+        $this->profits->createDriverProfit($driverId, $ride->id, - ($fee));
+      }
 
       return $ride->refresh();
     });
   }
 
-  public function deductCancellationFee(int $driverId): void
+  public function deductCancellationFee(int $driverId, float $fee): void
   {
-    DB::transaction(function () use ($driverId) {
-
-      $fee = (float) DB::table('settings')->where('key', 'cancelling_ride_fee')->value('value');
-
-      if ($fee <= 0) {
-        return;
-      }
+    DB::transaction(function () use ($driverId, $fee) {
 
       DB::table('driver_profiles')
         ->where('user_id', $driverId)
