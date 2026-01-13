@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Ride\CalculateRideRequest;
 use App\Repositories\Ride\RideRequestRepository;
 use App\Services\Ride\DistanceService;
+use App\Services\Ride\RideBroadcastService;
 use App\Services\Ride\RideRequestService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,11 +16,12 @@ class RideRequestController extends Controller
     public function store(
         CalculateRideRequest $request,
         DistanceService $service,
-        RideRequestRepository $repository
+        RideRequestRepository $repository,
+        RideBroadcastService $broadcastService
     ) {
         $estimate = $service->estimate($request->validated());
 
-        $ride = $repository->create([
+        $rideRequest = $repository->create([
             ...$request->validated(),
             'user_id'         => Auth::id(),
             'vehicle_type_id' => 1,
@@ -28,9 +30,11 @@ class RideRequestController extends Controller
             'duration_minutes' => $estimate['duration'],
         ]);
 
+        $broadcastService->sendToNearbyDrivers($rideRequest);
+
         return response()->json([
             'status' => true,
-            'data' => $ride,
+            'data' => $rideRequest,
         ], 201);
     }
 

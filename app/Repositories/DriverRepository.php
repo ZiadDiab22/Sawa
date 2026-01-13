@@ -2,8 +2,10 @@
 
 namespace App\Repositories;
 
+use App\Events\DriverActivated;
 use App\Models\DriverProfile;
 use App\Models\UserRole;
+use Illuminate\Support\Facades\Auth;
 
 class DriverRepository
 {
@@ -66,7 +68,12 @@ class DriverRepository
 
     public function toggleStatus(DriverProfile $driver)
     {
-        $driver->is_status = $driver->is_status === 'active' ? 'inactive' : 'active';
+        if ($driver->is_status === 'active') $driver->is_status = 'inactive';
+        else {
+            $driver->is_status = 'active';
+            broadcast(new DriverActivated(Auth::id()));
+        }
+
         $driver->save();
         return $driver;
     }

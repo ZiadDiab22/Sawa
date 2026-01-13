@@ -8,7 +8,9 @@ use App\Models\User;
 use App\Services\Auth\AuthService;
 use App\Services\Auth\UserService;
 use App\Services\User\Driver\DriverService;
+use App\Events\DriverActivated;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DriverController extends Controller
 {
@@ -32,7 +34,7 @@ class DriverController extends Controller
             'data' => $result
         ], 201);
     }
- public function login(Request $request)
+    public function login(Request $request)
     {
         $request->validate([
             'phone' => 'required|string|exists:users,phone',
