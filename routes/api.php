@@ -61,6 +61,7 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::post('/ride/{id}/cancel', [RideController::class, 'driverCancel']);
     Route::get('/history', [DriverHistoryController::class, 'index'])->middleware(['check_driver']);
     Route::get('/dashboard', [DriverDashboardController::class, 'index'])->middleware(['check_driver']);
+    Route::get('/stats', [DriverDashboardController::class, 'show'])->middleware(['check_driver']);
 });
 
 Route::middleware(['auth:sanctum'])->prefix('account')->group(function () {

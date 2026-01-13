@@ -41,4 +41,12 @@ class ProfitRepository
       ->whereDate('created_at', $date)
       ->sum('amount');
   }
+
+  public function sumForDate(int $driverId, string $date): float
+  {
+    return (float) DriverProfit::query()
+      ->where('user_id', $driverId)
+      ->whereDate('created_at', $date)
+      ->sum('amount');
+  }
 }

@@ -66,4 +66,9 @@ class Ride extends Model
     {
         return $this->hasOne(Payment::class);
     }
+
+    public function profit()
+    {
+        return $this->hasOne(DriverProfit::class, 'ride_id');
+    }
 }

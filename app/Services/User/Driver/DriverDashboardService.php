@@ -30,4 +30,17 @@ class DriverDashboardService
         ->sumForDriverByDate($driverId, $today),
     ];
   }
+
+  public function stats(int $driverId, string $date): array
+  {
+    $rides = $this->rides->dailyRides($driverId, $date);
+
+    $totalProfit = $this->profits->sumForDate($driverId, $date);
+
+    return [
+      'total_count'     => $rides->count(),
+      'total_profit'    => $totalProfit,
+      'rides'           => $rides,
+    ];
+  }
 }

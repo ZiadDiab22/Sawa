@@ -36,4 +36,22 @@ class RideRepository
       ->whereDate('created_at', $date)
       ->count();
   }
+
+  public function dailyRides(int $driverId, string $date)
+  {
+    return Ride::query()
+      ->where('driver_id', $driverId)
+      ->whereDate('created_at', $date)
+      ->whereIn('status', ['completed', 'cancelled'])
+      ->with(['profit'])
+      ->get()
+      ->map(function ($ride) {
+        return [
+          'ride_id' => $ride->id,
+          'status'  => $ride->status,
+          'profit'  => (float) optional($ride->profit)->amount ?? 0,
+          'created_at' => $ride->created_at,
+        ];
+      });
+  }
 }
