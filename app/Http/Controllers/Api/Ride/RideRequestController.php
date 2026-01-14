@@ -66,4 +66,76 @@ class RideRequestController extends Controller
             'data' => $response->makeHidden('code'),
         ], 201);
     }
+
+    public function history(Request $request, DistanceService $service)
+{
+    try {
+        $rides = $service->listUserRideRequests(Auth::id());
+
+        return response()->json([
+            'status' => true,
+            'data'   => $rides,
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status'  => false,
+            'message' => $e->getMessage(),
+        ], 400);
+    }
+}
+
+
+public function historyById(Request $request, DistanceService $service)
+{
+    $request->validate([
+        'ride_request_id' => ['required', 'integer', 'exists:ride_requests,id']
+    ]);
+
+    try {
+        $ride = $service->listRideRequestById(
+            $request->ride_request_id,
+            Auth::id()
+        );
+
+        return response()->json([
+            'status' => true,
+            'data'   => $ride,
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status'  => false,
+            'message' => $e->getMessage(),
+        ], 400);
+    }
+}
+
+public function completed(Request $request, DistanceService $service)
+{
+    $request->validate([
+        'ride_request_id' => ['required', 'integer', 'exists:ride_requests,id']
+    ]);
+
+    try {
+        $ride = $service->showCompletedRideForUser(
+            $request->ride_request_id,
+            Auth::id()
+        );
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Your ride has been completed successfully',
+            'data'   => $ride,
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status'  => false,
+            'message' => $e->getMessage(),
+        ], 400);
+    }
+}
+
+
 }

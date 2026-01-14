@@ -95,4 +95,13 @@ class DriverRepository
         DriverProfile::where('user_id', $driverId)
             ->increment('wallet', $amount);
     }
+
+
+    public function getVehicleInfoByUserId(int $userId)
+{
+    return DriverProfile::with(['vehicleType', 'vehicleMake'])
+        ->where('user_id', $userId)
+        ->firstOrFail();
+}
+
 }

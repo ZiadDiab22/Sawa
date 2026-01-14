@@ -44,4 +44,42 @@ class RideRequestRepository
 
     return $ride;
   }
+
+
+  public function getByUserId(int $userId): array
+{
+    return RideRequest::where('user_id', $userId)
+        ->orderBy('id', 'DESC')
+        ->get()
+        ->toArray();
+}
+
+public function getById(int $rideRequestId): ?RideRequest
+{
+    return RideRequest::find($rideRequestId);
+}
+
+public function getCompletedRide(int $rideRequestId, int $userId): ?array
+{
+    $ride = Ride::with('rideRequest')
+        ->where('ride_request_id', $rideRequestId)
+        ->where('user_id', $userId)
+        ->where('status', 'completed')
+        ->first();
+
+    if (!$ride) {
+        return null;
+    }
+
+    return [
+        'id'        => $ride->ride_request_id,
+        'start_lat' => $ride->start_lat,
+        'start_lng' => $ride->start_lng,
+        'end_lat'   => $ride->end_lat,
+        'end_lng'   => $ride->end_lng,
+        'price'     => $ride->price,
+    ];
+}
+
+
 }

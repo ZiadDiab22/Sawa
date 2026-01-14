@@ -55,4 +55,22 @@ class AuthController extends Controller
             'message' => 'Deleted successfully'
         ]);
     }
+
+public function resendOtp(Request $request)
+{
+    $request->validate([
+        'phone' => 'required|string|exists:users,phone',
+    ]);
+
+    $user = User::where('phone', $request->phone)->first();
+    $status = $this->authService->sendOtp($user->phone); // نفس اسم الدالة تبعك
+
+    return response()->json([
+        'status' => $status,
+        'message' => 'OTP has been resent to your email',
+    ]);
+}
+
+
+
 }

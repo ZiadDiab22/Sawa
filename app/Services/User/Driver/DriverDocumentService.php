@@ -1,9 +1,10 @@
 <?php
 namespace App\Services\User\Driver;
 
-use App\Repositories\DriverDocumentRepository;
 use App\Models\DriverDocument;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use App\Repositories\DriverDocumentRepository;
 
 class DriverDocumentService
 {
@@ -51,6 +52,68 @@ class DriverDocumentService
         return $this->repo->update($id,$data);
     }
 
+
+public function deleteFileFromDocument(int $id, string $file): DriverDocument
+{
+    $doc = $this->repo->findOne($id);
+
+    $files = $doc->file_path ?? [];
+
+    // تحقق أن الملف موجود بالمصفوفة
+    if (! in_array($file, $files, true)) {
+        abort(404, 'File not found in document');
+    }
+
+    // حذف من التخزين
+    Storage::disk('public')->delete($file);
+
+    // حذف من المصفوفة
+    $doc->file_path = array_values(
+        array_diff($files, [$file])
+    );
+
+    $doc->save();
+
+    return $doc;
+}
+
+
+
+
+public function updateSingleFile( int $id, string $oldFile,UploadedFile $newFile): DriverDocument
+{
+
+    $doc = $this->repo->findOne($id);
+
+    $files = $doc->file_path ?? [];
+
+    // تحقق أن الملف القديم موجود
+    if (! in_array($oldFile, $files, true)) {
+        abort(404, 'File not found in document');
+    }
+
+    // حذف القديم
+    Storage::disk('public')->delete($oldFile);
+
+    // رفع الجديد بنفس فولدر النوع
+    $newPath = $newFile->store(
+        'driver_docs/' . $doc->type,
+        'public'
+    );
+
+    // استبدال المسار بالمصفوفة
+    $files = array_map(
+        fn($f) => $f === $oldFile ? $newPath : $f,
+        $files
+    );
+
+    $doc->file_path = array_values($files);
+    $doc->save();
+
+    return $doc;
+}
+
+
     public function showAll(): array
     {
         $driverId = auth()->user()->driverProfile->id;
@@ -65,6 +128,39 @@ class DriverDocumentService
             'created_at' => $doc->created_at,
         ], $docs);
     }
+
+
+public function showAllGroupedByType(): array
+{
+    $driverId = auth()->user()->driverProfile->id;
+
+    $docs = $this->repo->findByDriverId($driverId);
+
+    // تهيئة المفاتيح دائماً
+    $grouped = [
+        'license'   => [],
+        'driver_id' => [],
+        'insurance' => [],
+    ];
+
+    foreach ($docs as $doc) {
+        $grouped[$doc->type][] = [
+            'id' => $doc->id,
+            'file_path' => $doc->file_path
+                ? array_map(fn($f) => asset('storage/' . $f), $doc->file_path)
+                : [],
+            'expires_at' => $doc->expires_at,
+            'status' => $doc->status,
+            'created_at' => $doc->created_at,
+        ];
+    }
+
+    return $grouped;
+}
+
+
+
+
 
 //Admin
   public function approveDocument(int $id): DriverDocument
