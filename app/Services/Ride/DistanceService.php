@@ -161,4 +161,65 @@ class DistanceService
   {
     return (string) random_int(1000, 9999);
   }
+
+  //
+  public function listUserRideRequests(int $userId): array
+{
+    try {
+        $rides = $this->repo->getByUserId($userId);
+
+        if (empty($rides)) {
+            throw new \DomainException('No ride requests found for this user');
+        }
+
+        return $rides;
+
+    } catch (\DomainException $e) {
+        throw new \Exception('Ride History Error: ' . $e->getMessage());
+    } catch (\Throwable $e) {
+        throw new \Exception('Unexpected Error while fetching ride history');
+    }
+}
+
+public function listRideRequestById(int $rideRequestId, int $userId): RideRequest
+{
+    try {
+        $ride = $this->repo->getById($rideRequestId);
+
+        if (!$ride) {
+            throw new \DomainException('Ride request not found');
+        }
+
+        if ($ride->user_id !== $userId) {
+            throw new \DomainException('Unauthorized - this ride request does not belong to you');
+        }
+
+        return $ride;
+
+    } catch (\DomainException $e) {
+        throw new \Exception('Ride Request Error: ' . $e->getMessage());
+    } catch (\Throwable $e) {
+        throw new \Exception('Unexpected Error while fetching ride request');
+    }
+}
+
+public function showCompletedRideForUser(int $rideRequestId, int $userId): array
+{
+    try {
+        $ride = $this->repo->getCompletedRide($rideRequestId, $userId);
+
+        if (!$ride) {
+            throw new \DomainException('Ride not completed or not found for this user');
+        }
+
+        return $ride;
+
+    } catch (\DomainException $e) {
+        throw new \Exception('Completed Ride Error: ' . $e->getMessage());
+    } catch (\Throwable $e) {
+        throw new \Exception('Unexpected Error while fetching completed ride');
+    }
+}
+
+
 }

@@ -52,6 +52,47 @@ class DriverDocumentController extends Controller
         );
     }
 
+
+public function deleteFile(Request $request, int $id)
+{
+    $data = $request->validate([
+        'file' => 'required|string'
+    ]);
+
+    $doc = $this->driverDocumentService
+        ->deleteFileFromDocument($id, $data['file']);
+
+    return response()->json([
+        'message' => 'Document file deleted successfully',
+        'data' => $doc
+    ]);
+}
+
+public function updateFile(Request $request, int $id)
+{
+    $data = $request->validate([
+        'old_file' => 'required|string',
+        'file'     => 'required|file|mimes:jpg,jpeg,png,pdf|max:4096',
+    ]);
+
+    $doc = $this->driverDocumentService
+        ->updateSingleFile($id, $data['old_file'], $data['file']);
+
+    return response()->json([
+        'message' => 'Document file updated successfully',
+        'data' => $doc
+    ]);
+}
+
+public function showGrouped()
+{
+    return response()->json([
+        'data' => $this->driverDocumentService
+            ->showAllGroupedByType()
+    ]);
+}
+
+
     //Admin
 
       public function approve(int $id)

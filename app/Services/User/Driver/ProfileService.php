@@ -18,7 +18,8 @@ class ProfileService
     public function createProfile(int $userId, array $data): array
 {
     $data['user_id'] = $userId;
-
+    $data['status'] = 'pending';
+    $data['is_status'] = 'inactive';
 
     $data = $this->handleUploads($data);
 
@@ -39,7 +40,11 @@ class ProfileService
         'name'  => $data['name']  ?? $user->name,
         'email' => $data['email'] ?? $user->email,
         'phone' => $data['phone'] ?? $user->phone,
+        'gender' => $data['gender'] ?? $user->gender,
+
     ]);
+      unset($data['status'], $data['is_status']);
+
         $data = $this->handleUploads($data);
 
         $profile = $this->DriverRepository
@@ -130,6 +135,111 @@ class ProfileService
         'created_at' => $profile->created_at,
     ];
 }
+
+
+/* =========================
+    BASIC DRIVER INFO
+========================= */
+public function getBasicInfo(int $userId): array
+{
+    $profile = $this->DriverRepository->findByUserId($userId);
+    $user = $profile->user;
+
+    return [
+        'name'   => $user->name,
+        'email'  => $user->email,
+        'phone'  => $user->phone,
+        'gender' => $profile->gender,
+        'profile_image' => $user->profile_image
+            ? asset('storage/' . $user->profile_image)
+            : null,
+    ];
+}
+
+
+/* =========================
+    UPDATE BASIC INFO + IMAGE
+========================= */
+public function updateBasicInfo(int $userId, array $data): array
+{
+    $user = User::findOrFail($userId);
+    $profile = $this->DriverRepository->findByUserId($userId);
+
+    // تحديث بيانات المستخدم
+    $user->update([
+        'name'  => $data['name']  ?? $user->name,
+        'email' => $data['email'] ?? $user->email,
+        'phone' => $data['phone'] ?? $user->phone,
+    ]);
+
+    // تحديث الجنس (بروفايل السائق)
+    if (isset($data['gender'])) {
+        $profile->update([
+            'gender' => $data['gender']
+        ]);
+    }
+
+    // تحديث الصورة الشخصية (اختياري)
+    if (isset($data['profile_image']) && $data['profile_image'] instanceof UploadedFile) {
+
+        if ($user->profile_image) {
+            \Storage::disk('public')->delete($user->profile_image);
+        }
+
+        $path = $data['profile_image']->store('profiles', 'public');
+
+        $user->update([
+            'profile_image' => $path
+        ]);
+    }
+
+    return [
+        'name'   => $user->name,
+        'email'  => $user->email,
+        'phone'  => $user->phone,
+        'gender' => $profile->gender,
+        'profile_image' => $user->profile_image
+            ? asset('storage/' . $user->profile_image)
+            : null,
+    ];
+}
+
+
+
+public function getVehicleInfo(int $userId): array
+{
+    $profile = $this->DriverRepository
+        ->getVehicleInfoByUserId($userId);
+
+    return [
+        'vehicle_type' => $profile->vehicleType?->name,
+        'vehicle_make' => $profile->vehicleMake?->name,
+
+        'vehicle_model' => $profile->vehicle_model,
+        'vehicle_year'  => $profile->vehicle_year,
+        'vehicle_color' => $profile->vehicle_color,
+        'vehicle_plate_number' => $profile->vehicle_plate_number,
+
+        'vehicle_document' => $profile->vehicle_document
+            ? asset('storage/' . $profile->vehicle_document)
+            : null,
+
+        'license_document' => $profile->license_document
+            ? asset('storage/' . $profile->license_document)
+            : null,
+
+        'insurance_document' => $profile->insurance_document
+            ? asset('storage/' . $profile->insurance_document)
+            : null,
+
+        'vehicle_images' => $profile->vehicle_images
+            ? collect($profile->vehicle_images)->map(
+                fn ($img) => asset('storage/' . $img)
+            )
+            : [],
+    ];
+}
+
 
 
 }

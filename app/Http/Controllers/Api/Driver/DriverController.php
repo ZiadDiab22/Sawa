@@ -78,4 +78,21 @@ class DriverController extends Controller
             'status' => $driver->status,
         ]);
     }
+
+
+    public function resendOtp(Request $request)
+{
+    $request->validate([
+        'phone' => 'required|string|exists:users,phone',
+    ]);
+
+    $user = User::where('phone', $request->phone)->first();
+    $status = $this->authService->sendOtp($user->phone); 
+
+    return response()->json([
+        'status' => $status,
+        'message' => 'OTP has been resent to your email',
+    ]);
+}
+
 }
