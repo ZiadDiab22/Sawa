@@ -49,4 +49,13 @@ class ProfitRepository
       ->whereDate('created_at', $date)
       ->sum('amount');
   }
+
+    public function sumBetween(int $driverId, $from, $to): float
+    {
+        return (float) DriverProfit::query()
+            ->where('user_id', $driverId)
+            ->whereBetween('created_at', [$from, $to])
+            ->sum('amount');
+    }
+
 }

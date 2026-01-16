@@ -31,16 +31,78 @@ class DriverDashboardService
     ];
   }
 
-  public function stats(int $driverId, string $date): array
-  {
-    $rides = $this->rides->dailyRides($driverId, $date);
+    public function stats(
+        int $driverId,
+        string $period,
+        ?string $from,
+        ?string $to
+    ): array {
 
-    $totalProfit = $this->profits->sumForDate($driverId, $date);
+        [$fromDate, $toDate] = $this->resolveRange(
+            period: $period,
+            from: $from,
+            to: $to
+        );
 
-    return [
-      'total_count'     => $rides->count(),
-      'total_profit'    => $totalProfit,
-      'rides'           => $rides,
-    ];
-  }
+        $rides = $this->rides->ridesBetween($driverId, $fromDate, $toDate);
+        $totalProfit = $this->profits->sumBetween($driverId, $fromDate, $toDate);
+
+        return [
+            'from'         => $fromDate->toDateTimeString(),
+            'to'           => $toDate->toDateTimeString(),
+            'total_count'  => $rides->count(),
+            'total_profit' => $totalProfit,
+            'rides'        => $rides,
+        ];
+    }
+
+
+
+    private function resolveRange(
+        string $period,
+        ?string $from,
+        ?string $to
+    ): array {
+
+        if (strtotime($period) !== false) {
+            $date = Carbon::parse($period);
+
+            return [
+                $date->copy()->startOfDay(),
+                $date->copy()->endOfDay(),
+            ];
+        }
+
+        return match ($period) {
+            'today' => [
+                now()->startOfDay(),
+                now()->endOfDay(),
+            ],
+
+            'last_7_days' => [
+                now()->subDays(6)->startOfDay(),
+                now()->endOfDay(),
+            ],
+
+            'last_30_days' => [
+                now()->subDays(29)->startOfDay(),
+                now()->endOfDay(),
+            ],
+
+            'this_month' => [
+                now()->startOfMonth(),
+                now()->endOfMonth(),
+            ],
+
+            'custom' => [
+                Carbon::parse($from)->startOfDay(),
+                Carbon::parse($to)->endOfDay(),
+            ],
+
+            default => throw new \InvalidArgumentException('Invalid period value'),
+        };
+    }
+
+
+
 }

@@ -40,9 +40,6 @@ Route::prefix('user')->group(function () {
         Route::get('/history', [RideRequestController::class, 'history']);
         Route::get('/historyById', [RideRequestController::class, 'historyById']);
         Route::get('/completed', [RideRequestController::class, 'completed']);
-
-
-
     });
 });
 
@@ -50,7 +47,6 @@ Route::prefix('driver')->group(function () {
     Route::post('/register', [UserController::class, 'register']);
     Route::post('/login', [UserController::class, 'login']);
     Route::post('/resend-otp', [DriverController::class, 'resendOtp']);
-
 });
 
 //passenger

@@ -54,4 +54,21 @@ class RideRepository
         ];
       });
   }
+
+    public function ridesBetween(int $driverId, $from, $to)
+    {
+        return Ride::query()
+            ->where('driver_id', $driverId)
+            ->whereBetween('created_at', [$from, $to])
+            ->whereIn('status', ['completed', 'cancelled'])
+            ->with(['profit'])
+            ->get()
+            ->map(fn ($ride) => [
+                'ride_id'    => $ride->id,
+                'status'     => $ride->status,
+                'profit'     => (float) optional($ride->profit)->amount ?? 0,
+                'created_at'=> $ride->created_at,
+            ]);
+    }
+
 }
