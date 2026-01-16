@@ -22,7 +22,7 @@ class UpdateDriverRatingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'rating'  => 'required|numeric|min:1|max:5',
+            'rating'  => 'numeric|min:0|max:5',
             'comment' => 'nullable|string',
         ];
     }

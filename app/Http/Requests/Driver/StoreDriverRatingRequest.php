@@ -23,7 +23,7 @@ class StoreDriverRatingRequest extends FormRequest
     {
         return [
             'ride_id'   => 'required|exists:rides,id',
-            'rating'    => 'required|numeric|min:1|max:5',
+            'rating'    => 'required|numeric|min:0|max:5',
             'comment'   => 'nullable|string',
         ];
     }

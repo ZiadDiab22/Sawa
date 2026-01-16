@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Ride\RideRequestController;
 use App\Http\Controllers\Api\Admin\VehicleTypeController;
 use App\Http\Controllers\Api\Passenger\ProfileController;
 use App\Http\Controllers\Api\Driver\DriverRatingController;
+use App\Http\Controllers\Api\Passenger\PassengerRatingController;
 use App\Http\Controllers\Api\Admin\DriverApprovalController;
 use App\Http\Controllers\Api\Driver\DriverDashboardController;
 use App\Http\Controllers\Api\Driver\DriverDocumentController;
@@ -69,6 +70,9 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::get('/history', [DriverHistoryController::class, 'index'])->middleware(['check_driver']);
     Route::get('/dashboard', [DriverDashboardController::class, 'index'])->middleware(['check_driver']);
     Route::get('/stats', [DriverDashboardController::class, 'show'])->middleware(['check_driver']);
+    Route::post('rating', [PassengerRatingController::class, 'store']);
+    Route::put('rating/{id}', [PassengerRatingController::class, 'update']);
+    Route::delete('rating/{id}', [PassengerRatingController::class, 'destroy']);
 
     Route::delete( '/deleteFile/{field}',[DriverProfileController::class, 'deleteFile']);
     Route::post('/updateFile/{field}',[DriverProfileController::class, 'updateFile'] );
