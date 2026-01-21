@@ -52,4 +52,195 @@ class AdminController extends Controller
             'user' => $updated,
         ]);
     }
+//test
+    public function approvedDriversCount()
+    {
+        return response()->json([
+            'approved_drivers_count' =>
+                $this->adminService->getApprovedDriversCount()
+        ]);
+    }
+
+    public function pendingDriversCount()
+    {
+        return response()->json([
+            'pending_drivers_count' =>
+                $this->adminService->getPendingDriversCount()
+        ]);
+    }
+
+    public function passengersCount()
+    {
+        return response()->json([
+            'passengers_count' =>
+                $this->adminService->getPassengersCount()
+        ]);
+    }
+
+    public function totalRidesCount()
+    {
+        return response()->json([
+            'total_rides_count' =>
+                $this->adminService->getTotalRidesCount()
+        ]);
+    }
+    public function completedRidesCount()
+    {
+        return response()->json([
+            'completed_rides_count' =>
+                $this->adminService->getCompletedRidesCount()
+        ]);
+    }
+   public function lastFiveCompletedRides()
+    {
+        return response()->json([
+            'last_five_rides' => $this->adminService->getLastFiveRides()
+        ]);
+    }
+    //vehicle_types
+
+    public function allVehicleTypes()
+    {
+        return response()->json([
+            'vehicle_types' => $this->adminService->getAllVehicleTypes()
+        ]);
+    }
+
+    public function toggleVehicleTypeStatus($id)
+    {
+        $newStatus = $this->adminService->toggleVehicleTypeStatus($id);
+
+        if ($newStatus === null) {
+            return response()->json([
+                'message' => 'Vehicle type not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'vehicle_type_id' => $id,
+            'is_active' => $newStatus
+        ]);
+    }
+
+      public function deleteVehicleTypes(Request $request)
+    {
+        $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'integer|exists:vehicle_types,id',
+        ]);
+
+        $deletedCount = $this->adminService
+            ->deleteVehicleTypes($request->ids);
+
+        return response()->json([
+            'deleted_count' => $deletedCount
+        ]);
+    }
+    public function searchVehicleTypes(Request $request)
+{
+    $request->validate([
+        'search' => 'required|string'
+    ]);
+
+    $results = $this->adminService
+        ->searchVehicleTypes($request->search);
+
+    return response()->json([
+        'count' => $results->count(),
+        'data'  => $results
+    ]);
+}
+
+    public function storeVehicleMake(Request $request)
+    {
+        $validated = $request->validate([
+            'name'      => 'required|string|unique:vehicle_makes,name',
+            'type'      => 'required|string',
+            'is_active' => 'required|boolean',
+        ]);
+
+        $vehicleMakeId = $this->adminService
+            ->createVehicleMake($validated);
+
+        return response()->json([
+            'message' => 'Vehicle make created successfully',
+            'data' => [
+                'id' => $vehicleMakeId,
+                'name' => $validated['name'],
+                'type' => $validated['type'] ?? null,
+                'is_active' => $validated['is_active'] ?? true,
+            ]
+        ], 201);
+    }
+
+    public function searchVehicleMakes(Request $request)
+{
+    $request->validate([
+        'search' => 'required|string'
+    ]);
+
+    $results = $this->adminService
+        ->searchVehicleMakes($request->search);
+
+    return response()->json([
+        'count' => $results->count(),
+        'data'  => $results
+    ]);
+}
+
+    public function getAllVehicleMakes()
+{
+    $vehicleMakes = $this->adminService->getAllVehicleMakes();
+
+    return response()->json([
+        'count' => $vehicleMakes->count(),
+        'data'  => $vehicleMakes
+    ]);
+}
+
+public function toggleVehicleMakeStatus($id)
+{
+    $newStatus = $this->adminService
+        ->toggleVehicleMakeStatus((int) $id);
+
+    if ($newStatus === null) {
+        return response()->json([
+            'message' => 'Vehicle make not found'
+        ], 404);
+    }
+
+    return response()->json([
+        'vehicle_make_id' => (int) $id,
+        'is_active' => $newStatus
+    ]);
+}
+
+public function deleteVehicleMakes(Request $request)
+{
+    $request->validate([
+        'ids'   => 'required|array|min:1',
+        'ids.*' => 'integer|exists:vehicle_makes,id',
+    ]);
+
+    $deletedCount = $this->adminService
+        ->deleteVehicleMakes($request->ids);
+
+    return response()->json([
+        'deleted_count' => $deletedCount
+    ]);
+}
+public function filterVehicleMakesByType(Request $request)
+{
+    $request->validate([
+        'type' => 'required|string'
+    ]);
+
+    $vehicleMakes = $this->adminService
+        ->getVehicleMakesByType($request->type);
+
+    return response()->json([
+        'count' => $vehicleMakes->count(),
+        'data'  => $vehicleMakes
+    ]);
+}
 }

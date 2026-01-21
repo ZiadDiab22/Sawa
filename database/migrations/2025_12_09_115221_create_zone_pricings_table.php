@@ -13,16 +13,13 @@ return new class extends Migration
     {
         Schema::create('zone_pricings', function (Blueprint $table) {
             $table->id();
-
             $table->foreignId('zone_id')
                 ->constrained('zones')
                 ->cascadeOnDelete();
-
             $table->decimal('base_fare', 10, 2);
             $table->decimal('per_km', 10, 2);
             $table->decimal('per_minute', 10, 2);
             $table->decimal('minimum_fare', 10, 2);
-
             $table->timestamps();
         });
     }

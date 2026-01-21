@@ -42,7 +42,6 @@ Route::prefix('user')->group(function () {
         Route::get('/completed', [RideRequestController::class, 'completed']);
 
 
-
     });
 });
 
@@ -134,6 +133,27 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::post('updateAboutUs', [AboutUsController::class, 'update']);
         Route::post('storeAboutUs', [AboutUsController::class, 'store']);
+        //test
+        Route::get('/drivers/approved/count',[AdminController::class, 'approvedDriversCount']);
+        Route::get('/drivers/pending/count',[AdminController::class, 'pendingDriversCount']);
+        Route::get('/passengers/count', [AdminController::class,'passengersCount']);
+        Route::get('/rides/count',[AdminController::class, 'totalRidesCount']);
+        Route::get('/rides/completed/count',[AdminController::class, 'completedRidesCount']);
+        Route::get('/rides/last-five',[AdminController::class, 'lastFiveCompletedRides']);
+        //vehicle_types
+        Route::get('/vehicle-types',[AdminController::class, 'allVehicleTypes']);
+        Route::patch('/vehicle-types/{id}/toggle-status', [AdminController::class, 'toggleVehicleTypeStatus']);
+        Route::delete('/vehicle-types/bulk-delete',[AdminController::class, 'deleteVehicleTypes']);
+        Route::get('/vehicle-types/search',[AdminController::class, 'searchVehicleTypes']);
+        //vehicle_Makes
+        Route::post('/vehicle-makes',[AdminController::class, 'storeVehicleMake']);
+        Route::get('/vehicle-makes/search',[AdminController::class, 'searchVehicleMakes']);
+        Route::get('/vehicle-makes/getAll', [AdminController::class, 'getAllVehicleMakes']);
+        Route::patch('/vehicle-makes/{id}/toggle-status',[AdminController::class, 'toggleVehicleMakeStatus']);
+        Route::delete('/vehicle-makes/bulk-delete',[AdminController::class, 'deleteVehicleMakes']);
+        Route::get('/vehicle-makes/filter-by-type',[AdminController::class, 'filterVehicleMakesByType']);
+
+
     });
 
 //  documents
