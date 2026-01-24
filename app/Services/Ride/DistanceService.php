@@ -2,6 +2,7 @@
 
 namespace App\Services\Ride;
 
+use App\Events\RideAccepted;
 use App\Models\RideRequest;
 use App\Models\RideRequestResponse;
 use App\Repositories\Ride\RideRequestRepository;
@@ -153,7 +154,9 @@ class DistanceService
         ]
       );
 
-      return $ride;
+        broadcast(new RideAccepted($ride))->toOthers();
+
+        return $ride;
     });
   }
 

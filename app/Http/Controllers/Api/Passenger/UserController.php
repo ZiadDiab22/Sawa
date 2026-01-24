@@ -34,12 +34,11 @@ class UserController extends Controller
 
     public function login(UserLoginRequest $request)
     {
-        $token = $this->authService->login($request->validated());
+        $status = $this->authService->sendOtp($request->phone);
 
         return response()->json([
             'status' => true,
-            'message' => 'Logged in Successfully',
-            'token' => $token
+            'message' => 'OTP will be sent to your email address',
         ]);
     }
 }
