@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('driver_profiles', function (Blueprint $table) {
             $table->id();
 
-           
+
             $table->enum('gender', ['male', 'female'])->nullable();
             $table->foreignId('user_id')
                 ->constrained('users')
@@ -48,6 +48,7 @@ return new class extends Migration
             $table->decimal('wallet', 10, 2)->default(0);
             $table->enum('status', ['pending', 'approved', 'suspended'])->default('pending');
             $table->enum('is_status', ['active', 'inactive', 'banned'])->default('inactive');
+            $table->boolean('can_receive_requests')->default(false);
 
             $table->timestamps();
         });

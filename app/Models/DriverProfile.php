@@ -9,7 +9,7 @@ class DriverProfile extends Model
 {
 
     protected $fillable = [
-      
+
         'gender',
         'user_id',
         'vehicle_type_id',
@@ -25,6 +25,7 @@ class DriverProfile extends Model
         'status',
         'is_status',
         'wallet',
+        'can_receive_requests'
     ];
 
     protected $casts = [

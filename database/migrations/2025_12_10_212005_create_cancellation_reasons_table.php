@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('cancellation_reasons', function (Blueprint $table) {
             $table->id();
 
-            $table->enum('type', ['passenger', 'driver', 'system']);
-            $table->string('reason_text');
+            $table->enum('user_type', ['passenger', 'driver', 'system']);
+            $table->string('reason');
+            $table->boolean('is_active')->default(true);
 
             $table->timestamps();
         });

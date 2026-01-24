@@ -91,7 +91,7 @@ class AdminController extends Controller
                 $this->adminService->getCompletedRidesCount()
         ]);
     }
-   public function lastFiveCompletedRides()
+    public function lastFiveCompletedRides()
     {
         return response()->json([
             'last_five_rides' => $this->adminService->getLastFiveRides()
@@ -122,7 +122,7 @@ class AdminController extends Controller
         ]);
     }
 
-      public function deleteVehicleTypes(Request $request)
+    public function deleteVehicleTypes(Request $request)
     {
         $request->validate([
             'ids'   => 'required|array|min:1',
@@ -243,4 +243,229 @@ public function filterVehicleMakesByType(Request $request)
         'data'  => $vehicleMakes
     ]);
 }
+
+//CancellationReason
+
+
+public function index()
+    {
+        return response()->json([
+            'data' => $this->adminService->list()
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+            $reason = $this->adminService->create($request->all());
+
+            return response()->json([
+                'message' => 'Cancellation reason created successfully',
+                'data' => $reason
+            ], 201);
+    }
+
+    public function update(Request $request, int $id)
+    {
+        try {
+            $reason = $this->adminService->update($id, $request->all());
+
+            return response()->json([
+                'message' => 'Cancellation reason updated',
+                'data' => $reason
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Record not found'
+            ], 404);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'message' => 'Something went wrong'
+            ], 500);
+        }
+    }
+
+    public function bulkDestroy(Request $request)
+{
+    try {
+        $deletedCount = $this->adminService->bulkDelete($request->ids);
+
+        return response()->json([
+            'message' => "{$deletedCount} records deleted successfully"
+        ]);
+
+    } catch (ValidationException $e) {
+        return response()->json([
+            'errors' => $e->errors()
+        ], 422);
+
+    } catch (\Throwable $e) {
+        report($e);
+
+        return response()->json([
+            'message' => 'Something went wrong'
+        ], 500);
+    }
+}
+
+
+    public function toggleStatus(int $id)
+    {
+        try {
+            $reason = $this->adminService->toggleStatus($id);
+
+            return response()->json([
+                'message' => 'Status updated',
+                'data' => $reason
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Record not found'
+            ], 404);
+        }
+    }
+
+    public function SearchCancellationReason(Request $request)
+{
+    return response()->json([
+        'data' => $this->adminService->search($request->query('search'))
+    ]);
+}
+
+//Driver Management
+//DriversList
+
+    public function listDrivers()
+    {
+        return response()->json(
+            $this->adminService->listDrivers()
+        );
+    }
+
+    public function approveDriver($id)
+{
+    try {
+        $this->adminService->approveDriver((int) $id);
+
+        return response()->json([
+            'message' => 'Driver approved successfully'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => $e->getMessage()
+        ], 400);
+    }
+}
+
+public function suspendDriver($id)
+{
+    try {
+        $this->adminService->suspendDriver((int) $id);
+
+        return response()->json([
+            'message' => 'Driver suspended successfully'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => $e->getMessage()
+        ], 400);
+    }
+}
+
+public function listActiveDrivers()
+{
+    return response()->json(
+        $this->adminService->listActiveDrivers()
+    );
+}
+
+public function listInactiveDrivers()
+{
+    return response()->json(
+        $this->adminService->listInactiveDrivers()
+    );
+}
+
+public function listPendingDrivers()
+{
+    return response()->json(
+        $this->adminService->listPendingDrivers()
+    );
+}
+
+ public function toggleReceivingRequests(Request $request, int $driverId)
+    {
+        $validated = $request->validate([
+            'can_receive_requests' => ['required', 'boolean'],
+        ]);
+
+        $driver = $this->adminService->toggleReceivingRequests(
+            $driverId,
+            $validated['can_receive_requests']
+        );
+
+        return response()->json([
+            'message' => 'Driver receiving requests status updated successfully',
+            'data' => [
+                'driver_id' => $driver->id,
+                'can_receive_requests' => $driver->can_receive_requests,
+            ],
+        ]);
+    }
+
+
+    public function searchDrivers(Request $request)
+{
+    $request->validate([
+        'search' => 'required|string'
+    ]);
+
+    return response()->json([
+        'data' => $this->adminService
+            ->searchDrivers($request->search)
+    ]);
+}
+
+
+public function documentsByDriver(int $driverId)
+{
+    return response()->json([
+        'driver_id' => $driverId,
+        'documents' => $this->adminService
+            ->getDocumentsByDriverId($driverId)
+    ]);
+}
+
+public function approveDocument(int $id)
+{
+    $doc = $this->adminService
+        ->approveDocumentByAdmin($id);
+
+    return response()->json([
+        'message' => 'Document approved successfully',
+        'data' => $doc
+    ]);
+}
+
+public function rejectDocument(int $id)
+{
+    $doc = $this->adminService
+        ->rejectDocumentByAdmin($id);
+
+    return response()->json([
+        'message' => 'Document rejected successfully',
+        'data' => $doc
+    ]);
+}
+
+
 }

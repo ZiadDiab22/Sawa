@@ -155,16 +155,39 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::delete('/vehicle-makes/bulk-delete',[AdminController::class, 'deleteVehicleMakes']);
         Route::get('/vehicle-makes/filter-by-type',[AdminController::class, 'filterVehicleMakesByType']);
 
+        //CancellationReason
+        Route::get('cancellation-reasons/index',[AdminController::class, 'index']);
+        Route::get('cancellation-reasons/SearchCancellationReason',[AdminController::class, 'SearchCancellationReason']);
+        Route::post('cancellation-reasons/store',[AdminController::class, 'store']);
+        Route::put('cancellation-reasons/{id}',[AdminController::class, 'update']);
+        Route::patch('cancellation-reasons/{id}/toggle-status',[AdminController::class, 'toggleStatus']);
+        Route::delete('cancellation-reasons/bulk-delete',[AdminController::class, 'bulkDestroy']);
+        //Driver Management
+        //DriversList
+        Route::get('/listDrivers', [AdminController::class, 'listDrivers']);
+        Route::post('/approve/{id}', [AdminController::class, 'approveDriver']);
+        Route::post('/suspend/{id}', [AdminController::class, 'suspendDriver']);
+        Route::get('/active', [AdminController::class, 'listActiveDrivers']);
+        Route::get('/inactive', [AdminController::class, 'listInactiveDrivers']);
+        Route::get('/pending', [AdminController::class, 'listPendingDrivers']);
+        Route::patch('/toggle-receiving-requests/{driverId}',[AdminController::class,'toggleReceivingRequests']);
+        Route::get('/searchDrivers', [AdminController::class, 'searchDrivers']);
+        Route::get('/documentsByDriver/{driverId}',[AdminController::class, 'documentsByDriver']);
+        Route::post('/driver-documents/{id}/approve',[AdminController::class, 'approveDocument']);
+        Route::post('/driver-documents/{id}/reject',[AdminController::class, 'rejectDocument']);
 
-    });
+
+});
+
+
 
 //  documents
 
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/driver/documents', [DriverDocumentController::class, 'store']);
-    Route::post('/driver/documents/{id}', [DriverDocumentController::class, 'update']);
-    Route::get('/driver/documents', [DriverDocumentController::class, 'show']);
+    // Route::post('/driver/documents', [DriverDocumentController::class, 'store']);
+    // Route::post('/driver/documents/{id}', [DriverDocumentController::class, 'update']);
+    // Route::get('/driver/documents', [DriverDocumentController::class, 'show']);
     Route::post('/driver/documents/store',[DriverDocumentController::class,'store']);
     Route::post('/driver/documents/update/{id}',[DriverDocumentController::class,'update']);
     Route::get('/driver/documents/show',[DriverDocumentController::class,'show']);
