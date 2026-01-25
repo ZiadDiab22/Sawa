@@ -123,6 +123,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/drivers/{id}/reject', [DriverApprovalController::class, 'reject']);
         Route::get('/drivers/approved', [DriverApprovalController::class, 'approvedDrivers']);
         Route::get('/rides', [RideInfoController::class, 'index']);
+        Route::get('/rides/{ride_id}', [RideInfoController::class, 'show']);
     });
 });
 

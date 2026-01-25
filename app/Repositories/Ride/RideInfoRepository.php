@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Ride;
 
+use App\Models\Ride;
 use Illuminate\Support\Facades\DB;
 use \Illuminate\Support\Collection;
 
@@ -39,4 +40,17 @@ class RideInfoRepository
             ->latest('rides.created_at')
             ->get();
     }
-}
+
+    public function findWithDetails(int $rideId)
+    {
+        return Ride::with([
+            'driver:id,name,phone',
+            'user:id,name,phone',
+            'driverProfile',
+            'statusHistory',
+            'driverRating',
+            'passengerRating',
+            'driverProfit',
+            'companyCommission',
+        ])->findOrFail($rideId);
+    }}

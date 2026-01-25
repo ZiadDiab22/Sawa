@@ -17,4 +17,9 @@ class RideInfoService
     {
         return $this->repository->getRides($status);
     }
+
+    public function getRideDetails(int $rideId)
+    {
+        return $this->repository->findWithDetails($rideId);
+    }
 }

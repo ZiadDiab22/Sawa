@@ -67,8 +67,28 @@ class Ride extends Model
         return $this->hasOne(Payment::class);
     }
 
-    public function profit()
+    public function driverProfit()
     {
         return $this->hasOne(DriverProfit::class, 'ride_id');
+    }
+
+    public function companyCommission()
+    {
+        return $this->hasOne(CompanyCommission::class, 'ride_id');
+    }
+
+    public function passengerRating()
+    {
+        return $this->hasOne(PassengerRating::class, 'ride_id');
+    }
+
+    public function driverRating()
+    {
+        return $this->hasOne(DriverRating::class, 'ride_id');
+    }
+
+    public function driverProfile()
+    {
+        return $this->hasOne(DriverProfile::class, 'user_id', 'driver_id');
     }
 }
