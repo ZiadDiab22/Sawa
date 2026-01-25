@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OtpController;
+use \App\Http\Controllers\Api\Ride\RideInfoController;
 use App\Http\Controllers\Api\AboutUsController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Admin\CityController;
@@ -121,6 +122,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/drivers/{id}/approve', [DriverApprovalController::class, 'approve']);
         Route::post('/drivers/{id}/reject', [DriverApprovalController::class, 'reject']);
         Route::get('/drivers/approved', [DriverApprovalController::class, 'approvedDrivers']);
+        Route::get('/rides', [RideInfoController::class, 'index']);
     });
 });
 
