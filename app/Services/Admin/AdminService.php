@@ -23,32 +23,28 @@ class AdminService
 
   }
 
-  public function login(array $data)
-  {
-    $user = $this->userRepository->findByEmail($data['email']);
+    public function login(array $data)
+    {
+        $user = $this->userRepository->findByEmail($data['email']);
 
-    if (!$user || !Hash::check($data['password'], $user->password)) {
-      throw new \Exception('Invalid Cardential');
+        if (!$user || !Hash::check($data['password'], $user->password)) {
+            throw new \Exception('Invalid credentials', 401);
+        }
+
+        if ($user->blocked) {
+            throw new \Exception('This account is blocked', 403);
+        }
+
+        $hasRole = $user->roles()->where('role_id', 4)->exists();
+        if (!$hasRole) {
+            throw new \Exception('This api for admins only', 403);
+        }
+
+        return [
+            'user'  => $user,
+//            'token' => $user->createToken('api-token')->plainTextToken,
+        ];
     }
-
-    if ($user->blocked) {
-      throw new \Exception('This account is blocked');
-    }
-
-    $hasRole = $user->roles()->where('role_id', 4)->exists();
-
-    if (!$hasRole) {
-      throw new \Exception('this api for admins only');
-    }
-
-    $token = $user->createToken('api-token')->plainTextToken;
-
-    return [
-      'user' => $user,
-      'token' => $token,
-    ];
-  }
-
   public function updateProfile($userId, array $data)
   {
     $updateData = $data;
