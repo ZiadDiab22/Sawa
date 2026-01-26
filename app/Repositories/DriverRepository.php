@@ -110,4 +110,14 @@ class DriverRepository
         ->firstOrFail();
 }
 
+
+// إضافة
+public function getDriverWithDocumentsByUserId(int $userId)
+{
+    return DriverProfile::where('user_id', $userId)
+        ->with(['documents'])
+        ->firstOrFail();
+}
+
+
 }

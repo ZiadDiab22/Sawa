@@ -34,7 +34,6 @@ class DriverDocumentController extends Controller
             'file_path' => 'sometimes|array|size:2',
             'file_path.*' => 'file|mimes:jpg,jpeg,png,pdf|max:4096',
             'expires_at'=>'nullable|date',
-            'status'=>'sometimes|in:pending,approved,rejected'
         ]);
 
         $doc = $this->driverDocumentService->update($id,$data);

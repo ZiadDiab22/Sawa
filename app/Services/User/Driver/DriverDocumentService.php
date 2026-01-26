@@ -48,8 +48,9 @@ class DriverDocumentService
             $uploaded = $this->uploadTwoFiles($data['file_path'],'driver_docs/'.$doc->type);
             $data['file_path'] = $uploaded;
         }
-
-        return $this->repo->update($id,$data);
+//update
+        $data['status'] = 'pending';
+        return $this->repo->update($id, $data);
     }
 
 
@@ -72,8 +73,8 @@ public function deleteFileFromDocument(int $id, string $file): DriverDocument
         array_diff($files, [$file])
     );
 
+    $doc->status = 'pending';
     $doc->save();
-
     return $doc;
 }
 
@@ -108,6 +109,7 @@ public function updateSingleFile( int $id, string $oldFile,UploadedFile $newFile
     );
 
     $doc->file_path = array_values($files);
+    $doc->status = 'pending';
     $doc->save();
 
     return $doc;

@@ -81,6 +81,8 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::get('/profile/basicInfo',[DriverProfileController::class, 'basicInfo']);
     Route::post('/profile/updateBasicInfo',[DriverProfileController::class, 'updateBasicInfo'] );
     Route::get('/profile/showVehicle',[DriverProfileController::class, 'showVehicle']);
+    Route::get('/profile/status',[DriverProfileController::class, 'status']);
+
 });
 
 Route::middleware(['auth:sanctum'])->prefix('account')->group(function () {

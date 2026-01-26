@@ -241,5 +241,26 @@ public function getVehicleInfo(int $userId): array
 }
 
 
+ // إضافة
+public function getDriverStatus(int $userId): array
+{
+    $profile = $this->DriverRepository
+        ->getDriverWithDocumentsByUserId($userId);
+
+    return [
+        'driver_status' => [
+            'status' => $profile->status,
+            'is_status' => $profile->is_status,
+            'can_receive_requests' => $profile->can_receive_requests,
+        ],
+
+        'documents' => $profile->documents->map(fn ($doc) => [
+            'type' => $doc->type,
+            'status' => $doc->status,
+            'expires_at' => $doc->expires_at,
+        ])->values(),
+    ];
+}
+
 
 }

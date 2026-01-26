@@ -31,11 +31,10 @@ class ProfileService
     public function updateProfile(int $userId, array $data): array
     {
 
-        if (isset($data['image']) && $data['image'] instanceof UploadedFile) {
-            $data['profile_image'] = $this->uploadImage($data['image']);
-        }
+        if (isset($data['profile_image']) && $data['profile_image'] instanceof UploadedFile) {
+        $data['profile_image'] = $this->uploadImage($data['profile_image']);
+}
 
-        unset($data['image']);
 
         $user = $this->userRepository->update($userId, $data);
 

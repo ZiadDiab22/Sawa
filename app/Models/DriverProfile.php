@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\VehicleMake;
+use App\Models\DriverDocument;
 use Illuminate\Database\Eloquent\Model;
 
 class DriverProfile extends Model
@@ -68,4 +69,8 @@ class DriverProfile extends Model
     return $this->belongsTo(VehicleMake::class);
 }
 
+public function documents()
+{
+    return $this->hasMany(DriverDocument::class, 'driver_id');
+}
 }

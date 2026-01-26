@@ -209,5 +209,13 @@ public function showVehicle()
     ]);
 }
 
+// إضافة
+public function status()
+{
+    return response()->json([
+        'data' => $this->driverProfileService
+            ->getDriverStatus(auth()->id())
+    ]);
+}
 
 }
