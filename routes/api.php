@@ -12,7 +12,6 @@ use App\Http\Controllers\Api\Driver\DriverController;
 use App\Http\Controllers\Api\Passenger\UserController;
 use App\Http\Controllers\Api\Ride\RideRequestController;
 use App\Http\Controllers\Api\Admin\VehicleTypeController;
-use App\Http\Controllers\Api\Admin\DriverProfitController;
 use App\Http\Controllers\Api\Passenger\ProfileController;
 use App\Http\Controllers\Api\Driver\DriverRatingController;
 use App\Http\Controllers\Api\Passenger\PassengerRatingController;
@@ -120,7 +119,6 @@ Route::prefix('admin')->group(function () {
         Route::get('/drivers/approved', [DriverApprovalController::class, 'approvedDrivers']);
         Route::get('/rides', [RideInfoController::class, 'index']);
         Route::get('/rides/{ride_id}', [RideInfoController::class, 'show']);
-        Route::get('/driver/stats/{driver}', [DriverProfitController::class, 'show'])->middleware(['check_admin']);
     });
 });
 
@@ -174,9 +172,15 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::get('/documentsByDriver/{driverId}',[AdminController::class, 'documentsByDriver']);
         Route::post('/driver-documents/{id}/approve',[AdminController::class, 'approveDocument']);
         Route::post('/driver-documents/{id}/reject',[AdminController::class, 'rejectDocument']);
+
+
 });
 
+
+
 //  documents
+
+
 Route::middleware('auth:sanctum')->group(function () {
     // Route::post('/driver/documents', [DriverDocumentController::class, 'store']);
     // Route::post('/driver/documents/{id}', [DriverDocumentController::class, 'update']);

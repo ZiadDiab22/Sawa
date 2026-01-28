@@ -2,8 +2,12 @@
 
 namespace App\Repositories\Admin;
 
+use App\Models\Ride;
+use App\Models\DriverProfit;
 use App\Models\DriverProfile;
 use App\Models\DriverDocument;
+use Illuminate\Support\Carbon;
+use App\Models\CompanyCommission;
 use App\Models\CancellationReason;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -12,70 +16,77 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class AdminRepository
 {
     //dashboard
-    public function countApprovedDrivers(): int
+    public function getDashboardStats(): array
     {
-        return DriverProfile::where('status', 'approved')->count();
-    }
+        $today = Carbon::today();
 
-    public function countPendingDrivers(): int
-    {
-        return DriverProfile::where('status', 'pending')->count();
-    }
+        $approvedDriversCount = DB::table('driver_profiles')
+            ->where('status', 'approved')
+            ->count();
 
-    public function countPassengers(): int
-    {
-        return DB::table('users')
+        $pendingDriversCount = DB::table('driver_profiles')
+            ->where('status', 'pending')
+            ->count();
+
+        $passengersCount = DB::table('users')
             ->join('user_roles', 'users.id', '=', 'user_roles.user_id')
             ->join('roles', 'roles.id', '=', 'user_roles.role_id')
             ->where('roles.name', 'user')
             ->count();
-    }
 
-    public function countAllRides(): int
-    {
-        return DB::table('ride_requests')->count();
-    }
+        $totalRidesCount = DB::table('ride_requests')->count();
 
-    public function countCompletedRides(): int
-    {
-        return DB::table('ride_requests')
+        $completedRidesCount = DB::table('ride_requests')
             ->where('status', 'accepted')
             ->count();
-    }
 
-  public function getLastFiveRidesWithPassengerAndDriver()
-    {
-        return DB::table('rides')
+        // ========= PROFITS =========
+
+        // أرباح السائقين (كاملة)
+        $driversTotalProfit = DB::table('driver_profits')
+            ->sum('amount');
+
+        // أرباح الشركة (كاملة)
+        $companyTotalRevenue = DB::table('company_commissions')
+            ->sum('amount');
+
+        // الأرباح الكلية (سائق + شركة)
+        $totalPlatformRevenue = $driversTotalProfit + $companyTotalRevenue;
+
+        // أرباح الشركة اليومية (نسبة الشركة فقط)
+        $companyDailyRevenue = DB::table('company_commissions')
+            ->whereDate('created_at', $today)
+            ->sum('amount');
+
+        // آخر 5 رحلات مكتملة
+        $lastFiveRides = DB::table('rides')
             ->join('users as passengers', 'passengers.id', '=', 'rides.user_id')
             ->join('users as drivers', 'drivers.id', '=', 'rides.driver_id')
+            ->where('rides.status', 'completed')
             ->orderBy('rides.created_at', 'desc')
             ->limit(5)
             ->select([
-                // Ride info
                 'rides.id as ride_id',
-                'rides.ride_request_id',
-                'rides.status as ride_status',
-                'rides.start_lat',
-                'rides.start_lng',
-                'rides.end_lat',
-                'rides.end_lng',
-                'rides.distance_km',
                 'rides.price',
-                'rides.duration_minutes',
-                'rides.code',
                 'rides.created_at',
-
-                // Passenger info
-                'passengers.id as passenger_id',
                 'passengers.name as passenger_name',
-                'passengers.phone as passenger_phone',
-
-                // Driver info
-                'drivers.id as driver_id',
                 'drivers.name as driver_name',
-                'drivers.phone as driver_phone',
             ])
             ->get();
+
+        return [
+            'approved_drivers_count' => $approvedDriversCount,
+            'pending_drivers_count'  => $pendingDriversCount,
+            'passengers_count'       => $passengersCount,
+            'total_rides_count'      => $totalRidesCount,
+            'completed_rides_count'  => $completedRidesCount,
+
+            'total_platform_revenue' => (float) $totalPlatformRevenue,
+            'company_total_revenue'  => (float) $companyTotalRevenue,
+            'company_daily_revenue'  => (float) $companyDailyRevenue,
+
+            'last_five_rides'        => $lastFiveRides,
+        ];
     }
 
     //Plateform Setup
@@ -345,25 +356,47 @@ public function getVehicleMakesByType(string $type)
     }
 
 
-    public function approveDriver(int $driverId): bool
+
+public function approveDriver(int $driverId): bool
 {
-    $driver = DB::table('driver_profiles')
-        ->where('id', $driverId)
-        ->where('status', 'pending')
-        ->first();
+    return DB::transaction(function () use ($driverId) {
 
-    if (!$driver) {
-        return false;
-    }
+        $driver = DB::table('driver_profiles')
+            ->where('id', $driverId)
+            ->where('status', 'pending')
+            ->first();
 
-    DB::table('driver_profiles')
-        ->where('id', $driverId)
-        ->update([
-            'status' => 'approved',
-            'updated_at' => now(),
+        if (!$driver) {
+            return false;
+        }
+
+        DB::table('driver_profiles')
+            ->where('id', $driverId)
+            ->update([
+                'status' => 'approved',
+                'is_status' => 'active',
+                'can_receive_requests' => true,
+            ]);
+
+        $driverRoleId = DB::table('roles')
+            ->where('name', 'driver')
+            ->value('id');
+
+        if (!$driverRoleId) {
+            throw new \Exception('Driver role not found');
+        }
+
+        DB::table('user_roles')
+            ->where('user_id', $driver->user_id)
+            ->delete();
+
+        DB::table('user_roles')->insert([
+            'user_id' => $driver->user_id,
+            'role_id' => $driverRoleId,
         ]);
 
-    return true;
+        return true;
+    });
 }
 
 
@@ -672,6 +705,89 @@ public function updateStatus(int $id, string $status): DriverDocument
     return $doc;
 }
 
+
+public function toggleBannedDriver(int $driverId): DriverProfile
+{
+    $driver = DriverProfile::findOrFail($driverId);
+
+    if ($driver->is_status === 'banned') {
+        // فك الحظر
+        $driver->update([
+            'is_status' => 'inactive',
+        ]);
+    } else {
+        // حظر
+        $driver->update([
+            'is_status' => 'banned',
+            'can_receive_requests' => false,
+        ]);
+    }
+
+    return $driver;
+}
+
+    public function getDriverProfile(int $driverProfileId): DriverProfile
+    {
+        return DriverProfile::with([
+            'user',
+            'vehicleMake',
+            'documents'
+        ])->findOrFail($driverProfileId);
+    }
+
+    public function rideStats(int $driverUserId): array
+    {
+        return [
+            'live_rides' => Ride::where('driver_id', $driverUserId)
+                ->whereIn('status', ['driver_on_way', 'on_going'])
+                ->count(),
+
+            'completed_rides' => Ride::where('driver_id', $driverUserId)
+                ->where('status', 'completed')
+                ->count(),
+
+            'cancelled_rides' => Ride::where('driver_id', $driverUserId)
+                ->where('status', 'cancelled')
+                ->count(),
+
+            'rejected_rides' => 0,
+
+            'total_rides' => Ride::where('driver_id', $driverUserId)->count(),
+        ];
+    }
+
+  public function earnings(int $driverUserId): array
+{
+    $today = Carbon::today();
+
+    $driverTotalEarnings = DriverProfit::where('user_id', $driverUserId)
+        ->sum('amount');
+
+    $driverTodayEarnings = DriverProfit::where('user_id', $driverUserId)
+        ->whereDate('created_at', $today)
+        ->sum('amount');
+
+    $adminTotalCommission = CompanyCommission::where('user_id', $driverUserId)
+        ->sum('amount');
+
+    $adminTodayCommission = CompanyCommission::where('user_id', $driverUserId)
+        ->whereDate('created_at', $today)
+        ->sum('amount');
+
+    return [
+        'admin_commission' => (float) $adminTotalCommission,
+
+        'driver_earnings' => (float) $driverTotalEarnings,
+
+        'total_earnings' => (float) ($driverTotalEarnings + $adminTotalCommission),
+
+        'today_admin_commission' => (float) $adminTodayCommission,
+        'today_driver_earnings' => (float) $driverTodayEarnings,
+
+        'by_cash' => 0,
+        'by_card' => 0,
+    ];
+}
 
 }
 

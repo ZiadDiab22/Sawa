@@ -119,5 +119,9 @@ public function getDriverWithDocumentsByUserId(int $userId)
         ->firstOrFail();
 }
 
-
+ public function getWalletByUserId(int $userId): float
+    {
+        return (float) DriverProfile::where('user_id', $userId)
+            ->value('wallet') ?? 0;
+    }
 }
