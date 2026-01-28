@@ -83,6 +83,8 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::post('/profile/updateBasicInfo',[DriverProfileController::class, 'updateBasicInfo'] );
     Route::get('/profile/showVehicle',[DriverProfileController::class, 'showVehicle']);
     Route::get('/profile/status',[DriverProfileController::class, 'status']);
+    Route::get('/wallet', [DriverWalletController::class, 'showWallet']);
+
 
 });
 
@@ -99,10 +101,13 @@ Route::get('/test', function () {
 });
 
 Route::prefix('admin')->group(function () {
-    Route::post('/login', [AdminController::class, 'login']);
+        Route::post('/login', [AdminController::class, 'login']);
+
          //profile
         Route::middleware(['auth:sanctum', 'check_admin'])->group(function () {
         Route::post('/profile/update', [AdminController::class, 'updateProfile']);
+        Route::post('/logout', [AdminController::class, 'logout']);
+
         //city
         Route::post('/city/store', [CityController::class, 'store']);
         Route::put('/city/update/{id}', [CityController::class, 'update']);
@@ -116,6 +121,7 @@ Route::prefix('admin')->group(function () {
         //drivers
         Route::put('/driver/accept/{id}', [DriverController::class, 'accept']);
         Route::post('/driver/{id}/wallet/add', [DriverWalletController::class, 'add']);
+
     });
 
     Route::middleware(['auth:sanctum'])->group(function () {
@@ -140,12 +146,8 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::post('updateAboutUs', [AboutUsController::class, 'update']);
         Route::post('storeAboutUs', [AboutUsController::class, 'store']);
         //test
-        Route::get('/drivers/approved/count',[AdminController::class, 'approvedDriversCount']);
-        Route::get('/drivers/pending/count',[AdminController::class, 'pendingDriversCount']);
-        Route::get('/passengers/count', [AdminController::class,'passengersCount']);
-        Route::get('/rides/count',[AdminController::class, 'totalRidesCount']);
-        Route::get('/rides/completed/count',[AdminController::class, 'completedRidesCount']);
-        Route::get('/rides/last-five',[AdminController::class, 'lastFiveCompletedRides']);
+        Route::get('/approved/count',[AdminController::class, 'dashboard']);
+
         //vehicle_types
         Route::get('/vehicle-types',[AdminController::class, 'allVehicleTypes']);
         Route::patch('/vehicle-types/{id}/toggle-status', [AdminController::class, 'toggleVehicleTypeStatus']);
@@ -179,6 +181,8 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::get('/documentsByDriver/{driverId}',[AdminController::class, 'documentsByDriver']);
         Route::post('/driver-documents/{id}/approve',[AdminController::class, 'approveDocument']);
         Route::post('/driver-documents/{id}/reject',[AdminController::class, 'rejectDocument']);
+        Route::patch('/{id}/toggleBannedDriver', [AdminController::class, 'toggleBannedDriver']);
+        Route::get('/showDriver/{driverProfileId}', [AdminController::class, 'showDriver']);
 
 
 });

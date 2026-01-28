@@ -33,6 +33,17 @@ class AdminController extends Controller
             'token' => $result['token'],
         ]);
     }
+    //add
+
+    public function logout()
+{
+    $this->adminService->logout();
+
+    return response()->json([
+        'message' => 'Logged out successfully'
+    ]);
+}
+
 
     public function updateProfile(UpdateProfileRequest $request)
     {
@@ -53,50 +64,14 @@ class AdminController extends Controller
         ]);
     }
 //test
-    public function approvedDriversCount()
+
+  public function dashboard()
     {
-        return response()->json([
-            'approved_drivers_count' =>
-                $this->adminService->getApprovedDriversCount()
-        ]);
+        return response()->json(
+            $this->adminService->getDashboardData()
+        );
     }
 
-    public function pendingDriversCount()
-    {
-        return response()->json([
-            'pending_drivers_count' =>
-                $this->adminService->getPendingDriversCount()
-        ]);
-    }
-
-    public function passengersCount()
-    {
-        return response()->json([
-            'passengers_count' =>
-                $this->adminService->getPassengersCount()
-        ]);
-    }
-
-    public function totalRidesCount()
-    {
-        return response()->json([
-            'total_rides_count' =>
-                $this->adminService->getTotalRidesCount()
-        ]);
-    }
-    public function completedRidesCount()
-    {
-        return response()->json([
-            'completed_rides_count' =>
-                $this->adminService->getCompletedRidesCount()
-        ]);
-    }
-    public function lastFiveCompletedRides()
-    {
-        return response()->json([
-            'last_five_rides' => $this->adminService->getLastFiveRides()
-        ]);
-    }
     //vehicle_types
 
     public function allVehicleTypes()
@@ -468,4 +443,25 @@ public function rejectDocument(int $id)
 }
 
 
+public function toggleBannedDriver(int $id)
+{
+    $driver = $this->adminService->toggleBannedDriver($id);
+
+    return response()->json([
+        'message' => 'Driver ban status updated',
+        'data' => [
+            'driver_id' => $driver->id,
+            'is_status' => $driver->is_status,
+            'can_receive_requests' => $driver->can_receive_requests,
+        ]
+    ]);
+}
+
+ public function showDriver(int $driverProfileId)
+    {
+        return response()->json([
+            'message' => 'Driver details retrieved successfully',
+            'data' => $this->adminService->driverDetails($driverProfileId)
+        ]);
+    }
 }

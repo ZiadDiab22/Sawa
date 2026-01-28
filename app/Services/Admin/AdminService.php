@@ -2,6 +2,7 @@
 
 namespace App\Services\Admin;
 
+use Exception;
 use App\Models\DriverDocument;
 use Illuminate\Support\Facades\DB;
 use App\Repositories\UserRepository;
@@ -38,57 +39,47 @@ class AdminService
     $hasRole = $user->roles()->where('role_id', 4)->exists();
 
     if (!$hasRole) {
-      throw new \Exception('this api for admins only');
+    throw new \Exception('this api for admins only');
     }
 
     $token = $user->createToken('api-token')->plainTextToken;
 
     return [
-      'user' => $user,
-      'token' => $token,
+    'user' => $user,
+    'token' => $token,
     ];
-  }
+    }
+//add
 
-  public function updateProfile($userId, array $data)
-  {
+
+public function logout(): void
+{
+    $user = auth()->user();
+
+    if (!$user) {
+        throw new Exception('Unauthenticated');
+    }
+
+    $user->currentAccessToken()->delete();
+}
+
+    public function updateProfile($userId, array $data)
+    {
     $updateData = $data;
 
     if (isset($data['password'])) {
-      $updateData['password'] = Hash::make($data['password']);
+        $updateData['password'] = Hash::make($data['password']);
     }
 
     return $this->userRepository->update($userId, $updateData);
   }
 //test
-    public function getApprovedDriversCount(): int
+
+  public function getDashboardData(): array
     {
-        return $this->AdminRepository->countApprovedDrivers();
+        return $this->AdminRepository->getDashboardStats();
     }
 
-    public function getPendingDriversCount(): int
-    {
-        return $this->AdminRepository->countPendingDrivers();
-    }
-
-    public function getPassengersCount(): int
-    {
-        return $this->AdminRepository->countPassengers();
-    }
-
-    public function getTotalRidesCount(): int
-    {
-        return $this->AdminRepository->countAllRides();
-    }
-
-    public function getCompletedRidesCount(): int
-    {
-        return $this->AdminRepository->countCompletedRides();
-    }
-
-    public function getLastFiveRides()
-    {
-        return $this->AdminRepository->getLastFiveRidesWithPassengerAndDriver();
-    }
 //vehicle_types
     public function getAllVehicleTypes()
     {
@@ -434,6 +425,64 @@ private function formatDocumentResponse(DriverDocument $doc): array
         'updated_at' => $doc->updated_at,
     ];
 }
+
+public function toggleBannedDriver(int $driverId)
+{
+    return $this->AdminRepository->toggleBannedDriver($driverId);
+}
+
+
+    public function driverDetails(int $driverProfileId): array
+    {
+        $driver = $this->AdminRepository->getDriverProfile($driverProfileId);
+        $user = $driver->user;
+
+        $rideStats = $this->AdminRepository->rideStats($user->id);
+        $earnings  = $this->AdminRepository->earnings($user->id);
+
+        $docs = $driver->documents;
+
+        $documentApproved = $docs
+            ->whereIn('type', ['license', 'driver_id'])
+            ->every(fn($d) => $d->status === 'approved');
+
+        $vehicleDocApproved = $docs
+            ->where('type', 'insurance')
+            ->every(fn($d) => $d->status === 'approved');
+
+        return [
+            'driver' => [
+                'id' => $driver->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'profile_image' => $user->profile_image
+                    ? asset('storage/'.$user->profile_image)
+                    : null,
+                'can_receive_requests' => $driver->can_receive_requests,
+                'joining_date' => $user->created_at,
+            ],
+
+            'ride_information' => $rideStats,
+
+            'earnings' => $earnings,
+
+            'verification_status' => [
+                'document_verification' => $documentApproved,
+                'vehicle_document_verification' => $vehicleDocApproved,
+                'is_driver_active' => $driver->is_status === 'active',
+            ],
+
+            'vehicle_information' => [
+                'make' => $driver->vehicleMake?->name,
+                'model' => $driver->vehicle_model,
+                'vehicle_number' => $driver->vehicle_plate_number,
+                'year' => $driver->vehicle_year,
+                'color' => $driver->vehicle_color,
+            ],
+        ];
+    }
+
 
 
 }

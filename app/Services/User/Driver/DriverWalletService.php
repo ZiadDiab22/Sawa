@@ -41,4 +41,9 @@ class DriverWalletService
       return DriverProfile::where('user_id', $driverId)->get(['id', 'user_id', 'wallet', 'status']);
     });
   }
+
+   public function getWallet(int $userId): float
+    {
+        return $this->drivers->getWalletByUserId($userId);
+    }
 }

@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Api\Driver;
 
-use App\Http\Controllers\Controller;
-use App\Models\DriverProfile;
-use App\Services\User\Driver\DriverWalletService;
 use Illuminate\Http\Request;
+use App\Models\DriverProfile;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use App\Services\User\Driver\DriverWalletService;
 
 class DriverWalletController extends Controller
 {
@@ -28,5 +29,19 @@ class DriverWalletController extends Controller
         );
 
         return response()->json(['status' => true, 'message' => $profile]);
+    }
+
+     public function showWallet()
+    {
+        $userId = Auth::id();
+
+        $wallet = $this->service->getWallet($userId);
+
+        return response()->json([
+            'message' => 'Driver wallet retrieved successfully',
+            'data' => [
+                'wallet' => $wallet
+            ]
+        ]);
     }
 }
