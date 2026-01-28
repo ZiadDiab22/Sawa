@@ -6,6 +6,7 @@ use App\Repositories\DriverRatingRepository;
 use App\Repositories\Ride\ProfitRepository;
 use App\Repositories\Ride\RideRepository;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DriverDashboardService
 {
@@ -35,7 +36,8 @@ class DriverDashboardService
         int $driverId,
         string $period,
         ?string $from,
-        ?string $to
+        ?string $to,
+        bool $forAdmin
     ): array {
 
         [$fromDate, $toDate] = $this->resolveRange(
@@ -44,19 +46,18 @@ class DriverDashboardService
             to: $to
         );
 
-        $rides = $this->rides->ridesBetween($driverId, $fromDate, $toDate);
         $totalProfit = $this->profits->sumBetween($driverId, $fromDate, $toDate);
+        if (!$forAdmin) $rides = $this->rides->ridesBetween($driverId, $fromDate, $toDate);
+        else $rides = $this->rides->ridesBetweenDates($driverId, $fromDate, $toDate);
 
         return [
             'from'         => $fromDate->toDateTimeString(),
             'to'           => $toDate->toDateTimeString(),
             'total_count'  => $rides->count(),
             'total_profit' => $totalProfit,
-            'rides'        => $rides,
+            'rides'        => $forAdmin ? $rides->get() : $rides,
         ];
     }
-
-
 
     private function resolveRange(
         string $period,
@@ -103,6 +104,16 @@ class DriverDashboardService
         };
     }
 
+    public function check($id): void
+    {
+        $isDriver = DB::table('user_roles')
+            ->where('user_id', $id)
+            ->where('role_id', 2)
+            ->exists();
 
+        if (!$isDriver) {
+           throw new \Exception();
+        }
+    }
 
 }

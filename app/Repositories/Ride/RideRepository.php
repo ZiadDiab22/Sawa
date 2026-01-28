@@ -4,6 +4,7 @@ namespace App\Repositories\Ride;
 
 use App\Models\Ride;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class RideRepository
 {
@@ -61,14 +62,44 @@ class RideRepository
             ->where('driver_id', $driverId)
             ->whereBetween('created_at', [$from, $to])
             ->whereIn('status', ['completed', 'cancelled'])
-            ->with(['profit'])
+            ->with(['driverProfit'])
             ->get()
             ->map(fn ($ride) => [
                 'ride_id'    => $ride->id,
                 'status'     => $ride->status,
-                'profit'     => (float) optional($ride->profit)->amount ?? 0,
+                'profit'     => (float) optional($ride->driverProfit)->amount ?? 0,
                 'created_at'=> $ride->created_at,
             ]);
+    }
+
+    public function ridesBetweenDates(int $driverId, $from, $to)
+    {
+        return DB::table('rides as r')
+            ->join('users as d', 'd.id', 'r.driver_id')
+            ->join('users as u', 'u.id', 'r.user_id')
+            ->leftJoin('driver_profits as p', 'p.ride_id', 'r.id')
+            ->where('r.driver_id', $driverId)
+            ->whereBetween('r.created_at', [$from, $to])
+            ->whereIn('r.status', ['completed', 'cancelled'])
+            ->select(
+                'r.id as ride_id',
+                'r.user_id as user_id',
+                'u.name as user_name',
+                'r.driver_id as driver_id',
+                'd.name as driver_name',
+                'r.distance_km',
+                'r.duration_minutes',
+                'r.start_lat',
+                'r.start_lng',
+                'r.end_lat',
+                'r.end_lng',
+                'r.price',
+                'r.status',
+                'r.code',
+                DB::raw('COALESCE(p.amount, 0) as profit'),
+                DB::raw('DATE(r.created_at) as date'),
+                DB::raw('TIME(r.created_at) as time')
+            );
     }
 
 }
