@@ -52,10 +52,26 @@ class ProfitRepository
 
     public function sumBetween(int $driverId, $from, $to): float
     {
-        return (float) DriverProfit::query()
-            ->where('user_id', $driverId)
-            ->whereBetween('created_at', [$from, $to])
-            ->sum('amount');
+        $query = DriverProfit::query()
+            ->where('user_id', $driverId);
+
+        if ($from && $to) {
+            $query->whereBetween('created_at', [$from, $to]);
+        }
+
+        return (float) $query->sum('amount');
+    }
+
+
+    public function companySumBetween($from, $to): float
+    {
+        $query = CompanyCommission::query();
+
+        if ($from && $to) {
+            $query->whereBetween('created_at', [$from, $to]);
+        }
+
+        return (float) $query->sum('amount');
     }
 
 }

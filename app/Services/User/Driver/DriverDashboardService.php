@@ -51,15 +51,15 @@ class DriverDashboardService
         else $rides = $this->rides->ridesBetweenDates($driverId, $fromDate, $toDate);
 
         return [
-            'from'         => $fromDate->toDateTimeString(),
-            'to'           => $toDate->toDateTimeString(),
+            'from'         => $fromDate?->toDateTimeString(),
+            'to'           => $toDate?->toDateTimeString(),
             'total_count'  => $rides->count(),
             'total_profit' => $totalProfit,
             'rides'        => $forAdmin ? $rides->get() : $rides,
         ];
     }
 
-    private function resolveRange(
+    public function resolveRange(
         string $period,
         ?string $from,
         ?string $to
@@ -94,6 +94,8 @@ class DriverDashboardService
                 now()->startOfMonth(),
                 now()->endOfMonth(),
             ],
+
+            'all' => [ null, null ],
 
             'custom' => [
                 Carbon::parse($from)->startOfDay(),

@@ -30,6 +30,7 @@ class DriverProfitController extends Controller
                     'last_30_days',
                     'this_month',
                     'custom',
+                    'all'
                 ];
 
                 if (!in_array($value, $allowed) && !Carbon::hasFormat($value, 'Y-m-d')) {

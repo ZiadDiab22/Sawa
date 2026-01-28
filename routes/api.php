@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Admin\CityController;
 use App\Http\Controllers\Api\Admin\AdminController;
 use App\Http\Controllers\Api\Admin\DriverProfitController;
+use App\Http\Controllers\Api\Admin\CompanyProfitController;
 use App\Http\Controllers\Api\Driver\DriverController;
 use App\Http\Controllers\Api\Passenger\UserController;
 use App\Http\Controllers\Api\Ride\RideRequestController;
@@ -121,6 +122,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/rides', [RideInfoController::class, 'index']);
         Route::get('/rides/{ride_id}', [RideInfoController::class, 'show']);
         Route::get('/driver/stats/{id}', [DriverProfitController::class, 'show'])->middleware(['check_admin']);
+        Route::get('/company-stats', [CompanyProfitController::class, 'show'])->middleware(['check_admin']);
     });
 });
 
