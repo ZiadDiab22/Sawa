@@ -92,13 +92,6 @@ Route::middleware(['auth:sanctum'])->prefix('account')->group(function () {
     Route::delete('/delete', [AuthController::class, 'delete']);
 });
 
-Route::get('/test', function () {
-    broadcast(new \App\Events\NewRideRequestCreated(
-        \App\Models\RideRequest::first(),
-        1
-    ));
-    return 'sent';
-});
 
 Route::prefix('admin')->group(function () {
         Route::post('/login', [AdminController::class, 'login']);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Profile\UpdateProfileRequest;
 use App\Services\Admin\AdminService;
+use App\Services\Auth\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,21 +18,29 @@ class AdminController extends Controller
         $this->adminService = $adminService;
     }
 
-    public function login(Request $request)
+    public function login(Request $request,AuthService $authService)
     {
         $data = $request->validate([
-            'email' => 'required|email',
+            'email'    => 'required|email',
             'password' => 'required|string',
+            'phone' => 'required|string',
         ]);
 
-        $result = $this->adminService->login($data);
+        try {
+            $result = $this->adminService->login($data);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Login successful',
-            'user' => $result['user'],
-            'token' => $result['token'],
-        ]);
+            $status = $authService->sendOtp($request->phone);
+
+            return response()->json([
+                'status' => $status,
+                'message' => 'OTP will be sent to your email address',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 400);
+        }
     }
     //add
 
@@ -43,6 +52,7 @@ class AdminController extends Controller
         'message' => 'Logged out successfully'
     ]);
 }
+
 
 
     public function updateProfile(UpdateProfileRequest $request)

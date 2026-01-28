@@ -17,7 +17,7 @@ class AuthService
   public function sendOtp(string $phone): bool
   {
     $user = $this->userRepository->findByPhone($phone);
-    if (!$user) throw new \Exception('User not found');
+    if (!$user) throw new \Exception('Invalid credentials',401);
 
     $otp = rand(100000, 999999);
     $this->userRepository->updateOtp($user, $otp);
