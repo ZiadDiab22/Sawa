@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\AboutUsController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Admin\CityController;
 use App\Http\Controllers\Api\Admin\AdminController;
+use App\Http\Controllers\Api\Admin\DriverProfitController;
 use App\Http\Controllers\Api\Driver\DriverController;
 use App\Http\Controllers\Api\Passenger\UserController;
 use App\Http\Controllers\Api\Ride\RideRequestController;
@@ -119,6 +120,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/drivers/approved', [DriverApprovalController::class, 'approvedDrivers']);
         Route::get('/rides', [RideInfoController::class, 'index']);
         Route::get('/rides/{ride_id}', [RideInfoController::class, 'show']);
+        Route::get('/driver/stats/{id}', [DriverProfitController::class, 'show'])->middleware(['check_admin']);
     });
 });
 
