@@ -28,6 +28,12 @@ class RideDetailsResource extends JsonResource
             'driver' => [
                 'id' => $this->driver->id,
                 'name' => $this->driver->name,
+
+                'location' => [
+                    'lat' => $this->driver->location?->lat,
+                    'lng' => $this->driver->location?->lng,
+                ],
+
                 'vehicle' => [
                     'model' => $this->driverProfile->vehicle_model ?? null,
                     'year' => $this->driverProfile->vehicle_year ?? null,

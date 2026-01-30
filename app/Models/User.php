@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
@@ -20,7 +21,7 @@ class User extends Authenticatable
         'profile_image'
     ];
 
-    public function roles()
+    public function roles():BelongsToMany
     {
         return $this->belongsToMany(Role::class, 'user_roles');
     }
@@ -28,5 +29,10 @@ class User extends Authenticatable
     public function driverProfile()
     {
         return $this->hasOne(DriverProfile::class);
+    }
+
+    public function location()
+    {
+        return $this->hasOne(DriverLocation::class, 'driver_id');
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DriverLocation extends Model
 {
@@ -12,8 +13,8 @@ class DriverLocation extends Model
         'lng'
     ];
 
-    public function driver()
+    public function driver():BelongsTo
     {
-        return $this->belongsTo(DriverProfile::class, 'driver_id');
+        return $this->belongsTo(User::class, 'driver_id');
     }
 }

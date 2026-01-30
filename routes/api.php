@@ -184,10 +184,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
 
 });
 
-
-
 //  documents
-
 
 Route::middleware('auth:sanctum')->group(function () {
     // Route::post('/driver/documents', [DriverDocumentController::class, 'store']);
@@ -205,4 +202,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/admin/driver-documents/{id}/approve', [DriverDocumentController::class, 'approve'])->middleware(['check_admin']);
     Route::put('/admin/driver-documents/{id}/reject', [DriverDocumentController::class, 'reject'])->middleware(['check_admin']);
     Route::get('/admin/driver-documents/pending', [DriverDocumentController::class, 'pendingDocuments'])->middleware(['check_admin']);
-
