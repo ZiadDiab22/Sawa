@@ -53,9 +53,9 @@ class DistanceService
       $data['pickup_lng']
     );
 
-    if ($pickupDistance > $radiusKm) {
-      throw new \DomainException('Pickup location is outside service zone');
-    }
+//    if ($pickupDistance > $radiusKm) {
+//      throw new \DomainException('Pickup location is outside service zone');
+//    }
 
     $rideDistance = $this->calculateKm(
       $data['pickup_lat'],

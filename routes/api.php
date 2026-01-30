@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\Driver\DriverHistoryController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
 use App\Http\Controllers\Api\Driver\DriverWalletController;
 use App\Http\Controllers\Api\Ride\RideController;
+use \App\Http\Controllers\Api\Driver\DriverLocationController;
 
 
 Route::prefix('user')->group(function () {
@@ -74,9 +75,11 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::get('/history', [DriverHistoryController::class, 'index'])->middleware(['check_driver']);
     Route::get('/dashboard', [DriverDashboardController::class, 'index'])->middleware(['check_driver']);
     Route::get('/stats', [DriverDashboardController::class, 'show'])->middleware(['check_driver']);
-    Route::post('rating', [PassengerRatingController::class, 'store']);
-    Route::put('rating/{id}', [PassengerRatingController::class, 'update']);
-    Route::delete('rating/{id}', [PassengerRatingController::class, 'destroy']);
+    Route::post('rating', [PassengerRatingController::class, 'store'])->middleware(['check_driver']);
+    Route::put('rating/{id}', [PassengerRatingController::class, 'update'])->middleware(['check_driver']);
+    Route::delete('rating/{id}', [PassengerRatingController::class, 'destroy'])->middleware(['check_driver']);
+    Route::post('/location', [DriverLocationController::class, 'store'])->middleware(['check_driver']);
+    Route::get('/location', [DriverLocationController::class, 'show'])->middleware(['check_driver']);
 
     Route::delete( '/deleteFile/{field}',[DriverProfileController::class, 'deleteFile']);
     Route::post('/updateFile/{field}',[DriverProfileController::class, 'updateFile'] );
@@ -123,6 +126,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/rides/{ride_id}', [RideInfoController::class, 'show']);
         Route::get('/driver/stats/{id}', [DriverProfitController::class, 'show'])->middleware(['check_admin']);
         Route::get('/company-stats', [CompanyProfitController::class, 'show'])->middleware(['check_admin']);
+        Route::get('/driver-locations', [DriverLocationController::class, 'index'])->middleware(['check_admin']);
     });
 });
 

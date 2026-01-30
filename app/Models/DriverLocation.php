@@ -8,8 +8,8 @@ class DriverLocation extends Model
 {
     protected $fillable = [
         'driver_id',
-        'latitude',
-        'longitude'
+        'lat',
+        'lng'
     ];
 
     public function driver()
