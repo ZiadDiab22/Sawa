@@ -15,6 +15,11 @@ class RideDetailsResource extends JsonResource
             'date' => Carbon::parse($this->created_at)->format('Y-m-d'),
             'time' => Carbon::parse($this->created_at)->format('H:i'),
 
+            'start_lat' => $this->start_lat,
+            'start_lng' => $this->start_lng,
+            'end_lat' => $this->end_lat,
+            'end_lng' => $this->end_lng,
+
             'status' => $this->status,
             'distance_km' => $this->distance_km,
             'price' => $this->price,
