@@ -80,6 +80,7 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::delete('rating/{id}', [PassengerRatingController::class, 'destroy'])->middleware(['check_driver']);
     Route::post('/location', [DriverLocationController::class, 'store'])->middleware(['check_driver']);
     Route::get('/location', [DriverLocationController::class, 'show'])->middleware(['check_driver']);
+    Route::get('/ride-request/{ride_request_id}', [RideInfoController::class, 'get']);
 
     Route::delete( '/deleteFile/{field}',[DriverProfileController::class, 'deleteFile']);
     Route::post('/updateFile/{field}',[DriverProfileController::class, 'updateFile'] );
@@ -180,8 +181,6 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::get('/documentsByDriver/{driverId}',[AdminController::class, 'documentsByDriver']);
         Route::post('/driver-documents/{id}/approve',[AdminController::class, 'approveDocument']);
         Route::post('/driver-documents/{id}/reject',[AdminController::class, 'rejectDocument']);
-
-
 });
 
 //  documents
