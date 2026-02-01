@@ -486,7 +486,7 @@ public function toggleBannedDriver(int $driverId)
 
             'verification_status' => [
                 'document_verification' => $documentApproved,
-                'vehicle_document_verification' => $vehicleDocApproved,
+                'vehicle_document_verifi    cation' => $vehicleDocApproved,
                 'is_driver_active' => $driver->is_status === 'active',
             ],
 
@@ -501,5 +501,53 @@ public function toggleBannedDriver(int $driverId)
     }
 
 
+    public function driverRides(int $driverProfileId): array
+    {
+        $rides = $this->AdminRepository->getDriverRides($driverProfileId);
 
+        return $rides->map(function ($ride) {
+            return [
+                'reservation_code' => $ride->reservation_code,
+
+                'driver' => [
+                    'name' => $ride->driver_name,
+                    'avatar' => $ride->driver_avatar,
+                ],
+
+                'rider' => [
+                    'name' => $ride->rider_name,
+                ],
+
+                'service' => $ride->service ?? 'Taxi',
+
+                'vehicle' => [
+                    'type'   => $ride->vehicle_type,
+                    'make'   => $ride->vehicle_make,
+                    'model'  => $ride->vehicle_model,
+                    'number' => $ride->vehicle_plate_number,
+                ],
+
+                'pickup_location' => [
+                    'lat' => $ride->pickup_lat,
+                    'lng' => $ride->pickup_lng,
+                ],
+
+                'destination' => [
+                    'lat' => $ride->drop_lat,
+                    'lng' => $ride->drop_lng,
+                ],
+
+                'ride_fare' => number_format($ride->price, 2) . ' USD',
+
+                'booking_date' => $ride->booking_date,
+
+                'status' => ucfirst($ride->status),
+
+                // ثابتة حالياً
+                'payment' => [
+                    'method' => 'cash',
+                ],
+            ];
+        })->toArray();
+    }
 }

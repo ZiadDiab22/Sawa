@@ -467,11 +467,19 @@ public function toggleBannedDriver(int $id)
     ]);
 }
 
- public function showDriver(int $driverProfileId)
+    public function showDriver(int $driverProfileId)
     {
         return response()->json([
             'message' => 'Driver details retrieved successfully',
             'data' => $this->adminService->driverDetails($driverProfileId)
+        ]);
+    }
+
+     public function driverRides(int $driverProfileId, AdminService $service)
+    {
+        return response()->json([
+            'status' => true,
+            'data'   => $service->driverRides($driverProfileId),
         ]);
     }
 }

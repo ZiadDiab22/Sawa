@@ -181,6 +181,12 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::get('/documentsByDriver/{driverId}',[AdminController::class, 'documentsByDriver']);
         Route::post('/driver-documents/{id}/approve',[AdminController::class, 'approveDocument']);
         Route::post('/driver-documents/{id}/reject',[AdminController::class, 'rejectDocument']);
+        Route::patch('/{id}/toggleBannedDriver', [AdminController::class, 'toggleBannedDriver']);
+        Route::get('/showDriver/{driverProfileId}', [AdminController::class, 'showDriver']);
+        Route::get( '/driverRides/{driverProfileId}',[AdminController::class, 'driverRides']
+        );
+
+
 });
 
 //  documents

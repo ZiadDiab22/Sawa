@@ -789,6 +789,51 @@ public function toggleBannedDriver(int $driverId): DriverProfile
     ];
 }
 
+    public function getDriverRides(int $driverProfileId)
+    {
+        return DB::table('driver_profiles as dp')
+            ->join('users as d', 'd.id', '=', 'dp.user_id') // Driver
+            ->join('rides as r', 'r.driver_id', '=', 'd.id')
+            ->join('users as u', 'u.id', '=', 'r.user_id') // Rider
+            ->join('ride_requests as rr', 'rr.id', '=', 'r.ride_request_id')
+            ->leftJoin('vehicle_types as vt', 'vt.id', '=', 'dp.vehicle_type_id')
+            ->leftJoin('vehicle_makes as vm', 'vm.id', '=', 'dp.vehicle_make_id')
+            ->where('dp.id', $driverProfileId)
+            ->orderByDesc('r.created_at')
+            ->select([
+                'r.id as ride_id',
+                'r.code as reservation_code',
+
+                // Driver
+                'd.id as driver_id',
+                'd.name as driver_name',
+                'd.profile_image as driver_avatar',
+
+                // Rider
+                'u.id as rider_id',
+                'u.name as rider_name',
+
+                // Service
+                'vt.name as service',
+
+                // Vehicle
+                'vt.name as vehicle_type',
+                'vm.name as vehicle_make',
+                'dp.vehicle_model',
+                'dp.vehicle_plate_number',
+
+                // Locations
+                'rr.pickup_lat',
+                'rr.pickup_lng',
+                'rr.drop_lat',
+                'rr.drop_lng',
+
+                // Ride info
+                'r.price',
+                DB::raw('DATE(r.created_at) as booking_date'),
+            ])
+            ->get();
+    }
 }
 
 
