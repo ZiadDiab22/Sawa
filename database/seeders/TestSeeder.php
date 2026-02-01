@@ -55,6 +55,7 @@ class TestSeeder extends Seeder
             'price' => 6237100,
             'duration_minutes' => 278,
             'vehicle_type_id' => 1,
+            'passengers' => 3,
         ];
 
         $statuses = [
@@ -74,6 +75,7 @@ class TestSeeder extends Seeder
             'end_lng' => 36.3690464,
             'distance_km' => 92.53,
             'price' => 9237100,
+            'passengers' => 3,
             'duration_minutes' => 278,
         ];
 

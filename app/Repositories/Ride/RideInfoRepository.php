@@ -63,6 +63,8 @@ class RideInfoRepository
                 'u.name as user_name',
                 'u.phone as user_phone',
                 'u.email as user_email',
+                'u.gender as user_gender',
+                'u.profile_image as profile_image',
                 'v.name as vehicle_type_name']);
     }
 }

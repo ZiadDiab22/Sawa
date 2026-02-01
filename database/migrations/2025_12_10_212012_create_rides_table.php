@@ -34,6 +34,7 @@ return new class extends Migration
             $table->decimal('distance_km', 8, 2)->nullable();
             $table->integer('price')->nullable();
             $table->integer('duration_minutes')->nullable();
+            $table->integer('passengers')->nullable();
 
             $table->enum('status', ['driver_on_way', 'on_going', 'completed', 'cancelled'])->default('driver_on_way');
 

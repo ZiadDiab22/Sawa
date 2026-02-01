@@ -45,7 +45,6 @@ Route::prefix('user')->group(function () {
         Route::get('/history', [RideRequestController::class, 'history']);
         Route::get('/historyById', [RideRequestController::class, 'historyById']);
         Route::get('/completed', [RideRequestController::class, 'completed']);
-
     });
 });
 

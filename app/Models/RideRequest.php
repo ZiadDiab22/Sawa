@@ -19,6 +19,7 @@ class RideRequest extends Model
         'duration_minutes',
         'vehicle_type_id',
         'status',
+        'passengers'
     ];
 
     protected $casts = [

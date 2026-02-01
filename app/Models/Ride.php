@@ -21,6 +21,7 @@ class Ride extends Model
         'code',
         'promo_code_id',
         'cancellation_reason_id',
+        'passengers'
     ];
 
     protected $casts = [
