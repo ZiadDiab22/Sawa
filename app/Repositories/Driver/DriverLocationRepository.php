@@ -45,6 +45,7 @@ class DriverLocationRepository
             ) AS distance
         ', [$lat, $lat, $lng])
             ->where('p.is_status', 'active')
+            ->where('p.has_ride', false)
             ->having('distance', '<=', $radiusKm)
             ->get();
 

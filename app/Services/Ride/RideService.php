@@ -13,180 +13,188 @@ use Illuminate\Support\Facades\DB;
 
 class RideService
 {
-  public function __construct(
-    private RideRepository $rides,
-    private RideStatusHistoryRepository $histories,
-    private ProfitRepository $profits,
-    private DriverRepository $drivers,
-  ) {}
+    public function __construct(
+        private RideRepository              $rides,
+        private RideStatusHistoryRepository $histories,
+        private ProfitRepository            $profits,
+        private DriverRepository            $drivers,
+    )
+    {
+    }
 
-  public function start(int $rideId, int $driverId)
-  {
-    return DB::transaction(function () use ($rideId, $driverId) {
+    public function start(int $rideId, int $driverId)
+    {
+        return DB::transaction(function () use ($rideId, $driverId) {
 
-      $ride = $this->rides->findForDriver($rideId, $driverId);
+            $ride = $this->rides->findForDriver($rideId, $driverId);
 
-      if (!$ride) {
-        throw new \Exception('unauthorized - this ride for another driver');
-      }
+            if (!$ride) {
+                throw new \Exception('unauthorized - this ride for another driver');
+            }
 
-      if ($ride->status !== 'driver_on_way') {
-        throw new \Exception('Ride cannot be started');
-      }
+            if ($ride->status !== 'driver_on_way') {
+                throw new \Exception('Ride cannot be started');
+            }
 
-      $oldStatus = $ride->status;
+            $oldStatus = $ride->status;
 
-      $this->rides->updateStatus($ride, 'on_going');
+            $this->rides->updateStatus($ride, 'on_going');
 
-      $this->histories->create(
-        $ride->id,
-        $oldStatus,
-        'on_going',
-        'driver',
-        $driverId
-      );
+            $this->histories->create(
+                $ride->id,
+                $oldStatus,
+                'on_going',
+                'driver',
+                $driverId
+            );
 
-      return $this->set($ride);
-    });
-  }
+            return $this->set($ride);
+        });
+    }
 
-  public function set(Ride $ride)
-  {
-    $ride->refresh()->load('user:id,name,phone');
+    public function set(Ride $ride)
+    {
+        $ride->refresh()->load('user:id,name,phone');
 
-    $ride->setAttribute('user_name', $ride->user->name);
-    $ride->setAttribute('user_phone', $ride->user->phone);
+        $ride->setAttribute('user_name', $ride->user->name);
+        $ride->setAttribute('user_phone', $ride->user->phone);
 
-    unset($ride->user);
+        unset($ride->user);
 
-    return $ride;
-  }
+        return $ride;
+    }
 
-  public function complete(array $data, int $driverId)
-  {
-    return DB::transaction(function () use ($data, $driverId) {
+    public function complete(array $data, int $driverId)
+    {
+        return DB::transaction(function () use ($data, $driverId) {
 
-      $ride = $this->rides->findForDriver($data['ride_id'], $driverId);
+            $ride = $this->rides->findForDriver($data['ride_id'], $driverId);
 
-      if (!$ride) {
-        throw new \Exception('unauthorized - this ride for another driver');
-      }
+            if (!$ride) {
+                throw new \Exception('unauthorized - this ride for another driver');
+            }
 
-      if ($ride->status !== 'on_going') {
-        throw new \Exception('Ride cannot be completed');
-      }
+            if ($ride->status !== 'on_going') {
+                throw new \Exception('Ride cannot be completed');
+            }
 
-      if ($ride->code !== $data['code']) {
-        throw new \Exception('Invalid code');
-      }
+            if ($ride->code !== $data['code']) {
+                throw new \Exception('Invalid code');
+            }
 
-      $oldStatus = $ride->status;
+            $oldStatus = $ride->status;
 
-      $this->rides->updateStatus($ride, 'completed');
+            $this->rides->updateStatus($ride, 'completed');
 
-      $this->histories->create(
-        $ride->id,
-        $oldStatus,
-        'completed',
-        'driver',
-        $driverId
-      );
+            DriverProfile::query()->where('user_id', $driverId)->update(['has_ride' => false]);
 
-      $commissionPercent = (float) Setting::where('key', 'company_commission_percentage')->value('value');
-      $LE = (int) Setting::where('key', 'LE')->value('value');
+            $this->histories->create(
+                $ride->id,
+                $oldStatus,
+                'completed',
+                'driver',
+                $driverId
+            );
 
-      $companyAmount = $ride->price * ($commissionPercent / 100);
-      $driverAmount  = $ride->price - $companyAmount;
+            $commissionPercent = (float)Setting::where('key', 'company_commission_percentage')->value('value');
+            $LE = (int)Setting::where('key', 'LE')->value('value');
 
-      $this->drivers->decrementWallet($driverId, $companyAmount);
+            $companyAmount = $ride->price * ($commissionPercent / 100);
+            $driverAmount = $ride->price - $companyAmount;
 
-      $this->profits->createDriverProfit($driverId, $ride->id, $driverAmount);
-      $this->profits->createCompanyCommission($driverId, $ride->id, $companyAmount);
+            $this->drivers->decrementWallet($driverId, $companyAmount);
 
-      $wallet = (int) DriverProfile::where('user_id', $driverId)->value('wallet');
+            $this->profits->createDriverProfit($driverId, $ride->id, $driverAmount);
+            $this->profits->createCompanyCommission($driverId, $ride->id, $companyAmount);
 
-      if ($wallet <= - (20 * $LE)) {
-        $this->drivers->updateStatus($driverId, 'suspended');
-      }
+            $wallet = (int)DriverProfile::where('user_id', $driverId)->value('wallet');
 
-      return $this->set($ride);
-    });
-  }
+            if ($wallet <= -(20 * $LE)) {
+                $this->drivers->updateStatus($driverId, 'suspended');
+            }
 
-  public function userCancel(int $id, int $userId)
-  {
-    return DB::transaction(function () use ($id, $userId) {
+            return $this->set($ride);
+        });
+    }
 
-      $ride = $this->rides->findForUser($id, $userId);
+    public function userCancel(int $id, int $userId)
+    {
+        return DB::transaction(function () use ($id, $userId) {
 
-      if (!$ride) {
-        throw new \Exception('This ride isnt for you or not exist');
-      }
+            $ride = $this->rides->findForUser($id, $userId);
 
-      if ($ride->status != 'driver_on_way') {
-        throw new \Exception('This ride cannot be cancelled in this status');
-      }
+            if (!$ride) {
+                throw new \Exception('This ride isnt for you or not exist');
+            }
 
-      $oldStatus = $ride->status;
+            if ($ride->status != 'driver_on_way') {
+                throw new \Exception('This ride cannot be cancelled in this status');
+            }
 
-      $this->rides->updateStatus($ride, 'cancelled');
+            $oldStatus = $ride->status;
 
-      $this->histories->create(
-        $ride->id,
-        $oldStatus,
-        'cancelled',
-        'passenger',
-        $userId
-      );
+            $this->rides->updateStatus($ride, 'cancelled');
 
-      return $ride->refresh();
-    });
-  }
+            DriverProfile::query()->where('user_id', $ride->driver_id)->update(['has_ride' => false]);
 
-  public function driverCancel(int $id, int $driverId)
-  {
-    return DB::transaction(function () use ($id, $driverId) {
+            $this->histories->create(
+                $ride->id,
+                $oldStatus,
+                'cancelled',
+                'passenger',
+                $userId
+            );
 
-      $ride = $this->rides->findForDriver($id, $driverId);
+            return $ride->refresh();
+        });
+    }
 
-      if (!$ride) {
-        throw new \Exception('This ride isnt for you or not exist');
-      }
+    public function driverCancel(int $id, int $driverId)
+    {
+        return DB::transaction(function () use ($id, $driverId) {
 
-      if ($ride->status != 'driver_on_way') {
-        throw new \Exception('This ride cannot be cancelled in this status');
-      }
+            $ride = $this->rides->findForDriver($id, $driverId);
 
-      $oldStatus = $ride->status;
+            if (!$ride) {
+                throw new \Exception('This ride isnt for you or not exist');
+            }
 
-      $this->rides->updateStatus($ride, 'cancelled');
+            if ($ride->status != 'driver_on_way') {
+                throw new \Exception('This ride cannot be cancelled in this status');
+            }
 
-      $this->histories->create(
-        $ride->id,
-        $oldStatus,
-        'cancelled',
-        'driver',
-        $driverId
-      );
+            $oldStatus = $ride->status;
 
-      $fee = (float) DB::table('settings')->where('key', 'cancelling_ride_fee')->value('value');
+            $this->rides->updateStatus($ride, 'cancelled');
 
-      if ($fee > 0) {
-        $this->deductCancellationFee($driverId, $fee);
-        $this->profits->createDriverProfit($driverId, $ride->id, - ($fee));
-      }
+            $this->histories->create(
+                $ride->id,
+                $oldStatus,
+                'cancelled',
+                'driver',
+                $driverId
+            );
 
-      return $ride->refresh();
-    });
-  }
+            DriverProfile::query()->where('user_id', $driverId)->update(['has_ride' => false]);
 
-  public function deductCancellationFee(int $driverId, float $fee): void
-  {
-    DB::transaction(function () use ($driverId, $fee) {
+            $fee = (float)DB::table('settings')->where('key', 'cancelling_ride_fee')->value('value');
 
-      DB::table('driver_profiles')
-        ->where('user_id', $driverId)
-        ->decrement('wallet', $fee);
-    });
-  }
+            if ($fee > 0) {
+                $this->deductCancellationFee($driverId, $fee);
+                $this->profits->createDriverProfit($driverId, $ride->id, -($fee));
+            }
+
+            return $ride->refresh();
+        });
+    }
+
+    public function deductCancellationFee(int $driverId, float $fee): void
+    {
+        DB::transaction(function () use ($driverId, $fee) {
+
+            DB::table('driver_profiles')
+                ->where('user_id', $driverId)
+                ->decrement('wallet', $fee);
+        });
+    }
 }

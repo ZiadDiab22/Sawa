@@ -49,6 +49,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'approved', 'suspended'])->default('pending');
             $table->enum('is_status', ['active', 'inactive', 'banned'])->default('inactive');
             $table->boolean('can_receive_requests')->default(false);
+            $table->boolean('has_ride')->default(false);
 
             $table->timestamps();
         });
