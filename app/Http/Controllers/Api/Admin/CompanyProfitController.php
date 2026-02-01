@@ -1,30 +1,15 @@
 <?php
 
-namespace App\Http\Controllers\Api\Driver;
+namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\User\Driver\DriverDashboardService;
+use App\Services\Admin\CompanyProfitService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
-class DriverDashboardController extends Controller
+class CompanyProfitController extends Controller
 {
-    public function __construct(
-        private DriverDashboardService $service
-    ) {}
-
-    public function index(Request $request)
-    {
-        $driverId = $request->user()->id;
-
-        return response()->json([
-            'status' => true,
-            'data'   => $this->service->handle($driverId),
-        ]);
-    }
-
-    public function show(Request $request)
+    public function show(Request $request,CompanyProfitService $service)
     {
         $request->validate([
             'period' => ['required', function ($attr, $value, $fail) {
@@ -56,13 +41,12 @@ class DriverDashboardController extends Controller
 
         return response()->json([
             'status' => true,
-            'data'   => $this->service->stats(
-                driverId: Auth::id(),
+            'data' => $service->stats(
                 period: $request->period,
                 from: $request->from,
                 to: $request->to,
-                forAdmin: false
             )
         ]);
     }
+
 }

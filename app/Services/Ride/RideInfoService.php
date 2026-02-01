@@ -22,4 +22,9 @@ class RideInfoService
     {
         return $this->repository->findWithDetails($rideId);
     }
+
+    public function getRideRequestDetails(int $id)
+    {
+        return $this->repository->findRequestWithDetails($id);
+    }
 }

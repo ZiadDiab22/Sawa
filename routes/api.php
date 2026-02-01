@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\AboutUsController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Admin\CityController;
 use App\Http\Controllers\Api\Admin\AdminController;
+use App\Http\Controllers\Api\Admin\DriverProfitController;
+use App\Http\Controllers\Api\Admin\CompanyProfitController;
 use App\Http\Controllers\Api\Driver\DriverController;
 use App\Http\Controllers\Api\Passenger\UserController;
 use App\Http\Controllers\Api\Ride\RideRequestController;
@@ -22,6 +24,7 @@ use App\Http\Controllers\Api\Driver\DriverHistoryController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
 use App\Http\Controllers\Api\Driver\DriverWalletController;
 use App\Http\Controllers\Api\Ride\RideController;
+use \App\Http\Controllers\Api\Driver\DriverLocationController;
 
 
 Route::prefix('user')->group(function () {
@@ -72,9 +75,12 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::get('/history', [DriverHistoryController::class, 'index'])->middleware(['check_driver']);
     Route::get('/dashboard', [DriverDashboardController::class, 'index'])->middleware(['check_driver']);
     Route::get('/stats', [DriverDashboardController::class, 'show'])->middleware(['check_driver']);
-    Route::post('rating', [PassengerRatingController::class, 'store']);
-    Route::put('rating/{id}', [PassengerRatingController::class, 'update']);
-    Route::delete('rating/{id}', [PassengerRatingController::class, 'destroy']);
+    Route::post('rating', [PassengerRatingController::class, 'store'])->middleware(['check_driver']);
+    Route::put('rating/{id}', [PassengerRatingController::class, 'update'])->middleware(['check_driver']);
+    Route::delete('rating/{id}', [PassengerRatingController::class, 'destroy'])->middleware(['check_driver']);
+    Route::post('/location', [DriverLocationController::class, 'store'])->middleware(['check_driver']);
+    Route::get('/location', [DriverLocationController::class, 'show'])->middleware(['check_driver']);
+    Route::get('/ride-request/{ride_request_id}', [RideInfoController::class, 'get']);
 
     Route::delete( '/deleteFile/{field}',[DriverProfileController::class, 'deleteFile']);
     Route::post('/updateFile/{field}',[DriverProfileController::class, 'updateFile'] );
@@ -83,8 +89,6 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::post('/profile/updateBasicInfo',[DriverProfileController::class, 'updateBasicInfo'] );
     Route::get('/profile/showVehicle',[DriverProfileController::class, 'showVehicle']);
     Route::get('/profile/status',[DriverProfileController::class, 'status']);
-    Route::get('/wallet', [DriverWalletController::class, 'showWallet']);
-
 
 });
 
@@ -94,13 +98,10 @@ Route::middleware(['auth:sanctum'])->prefix('account')->group(function () {
 
 
 Route::prefix('admin')->group(function () {
-        Route::post('/login', [AdminController::class, 'login']);
-
+    Route::post('/login', [AdminController::class, 'login']);
          //profile
         Route::middleware(['auth:sanctum', 'check_admin'])->group(function () {
         Route::post('/profile/update', [AdminController::class, 'updateProfile']);
-        Route::post('/logout', [AdminController::class, 'logout']);
-
         //city
         Route::post('/city/store', [CityController::class, 'store']);
         Route::put('/city/update/{id}', [CityController::class, 'update']);
@@ -114,7 +115,6 @@ Route::prefix('admin')->group(function () {
         //drivers
         Route::put('/driver/accept/{id}', [DriverController::class, 'accept']);
         Route::post('/driver/{id}/wallet/add', [DriverWalletController::class, 'add']);
-
     });
 
     Route::middleware(['auth:sanctum'])->group(function () {
@@ -125,6 +125,9 @@ Route::prefix('admin')->group(function () {
         Route::get('/drivers/approved', [DriverApprovalController::class, 'approvedDrivers']);
         Route::get('/rides', [RideInfoController::class, 'index']);
         Route::get('/rides/{ride_id}', [RideInfoController::class, 'show']);
+        Route::get('/driver/stats/{id}', [DriverProfitController::class, 'show'])->middleware(['check_admin']);
+        Route::get('/company-stats', [CompanyProfitController::class, 'show'])->middleware(['check_admin']);
+        Route::get('/driver-locations', [DriverLocationController::class, 'index'])->middleware(['check_admin']);
     });
 });
 
@@ -139,8 +142,12 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::post('updateAboutUs', [AboutUsController::class, 'update']);
         Route::post('storeAboutUs', [AboutUsController::class, 'store']);
         //test
-        Route::get('/approved/count',[AdminController::class, 'dashboard']);
-
+        Route::get('/drivers/approved/count',[AdminController::class, 'approvedDriversCount']);
+        Route::get('/drivers/pending/count',[AdminController::class, 'pendingDriversCount']);
+        Route::get('/passengers/count', [AdminController::class,'passengersCount']);
+        Route::get('/rides/count',[AdminController::class, 'totalRidesCount']);
+        Route::get('/rides/completed/count',[AdminController::class, 'completedRidesCount']);
+        Route::get('/rides/last-five',[AdminController::class, 'lastFiveCompletedRides']);
         //vehicle_types
         Route::get('/vehicle-types',[AdminController::class, 'allVehicleTypes']);
         Route::patch('/vehicle-types/{id}/toggle-status', [AdminController::class, 'toggleVehicleTypeStatus']);
@@ -179,12 +186,10 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::get( '/driverRides/{driverProfileId}',[AdminController::class, 'driverRides']
         );
 
+
 });
 
-
-
 //  documents
-
 
 Route::middleware('auth:sanctum')->group(function () {
     // Route::post('/driver/documents', [DriverDocumentController::class, 'store']);
@@ -202,4 +207,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/admin/driver-documents/{id}/approve', [DriverDocumentController::class, 'approve'])->middleware(['check_admin']);
     Route::put('/admin/driver-documents/{id}/reject', [DriverDocumentController::class, 'reject'])->middleware(['check_admin']);
     Route::get('/admin/driver-documents/pending', [DriverDocumentController::class, 'pendingDocuments'])->middleware(['check_admin']);
-

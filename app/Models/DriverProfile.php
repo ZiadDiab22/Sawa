@@ -26,7 +26,8 @@ class DriverProfile extends Model
         'status',
         'is_status',
         'wallet',
-        'can_receive_requests'
+        'can_receive_requests',
+        'has_ride'
     ];
 
     protected $casts = [
