@@ -146,6 +146,7 @@ public function getBasicInfo(int $userId): array
     $user = $profile->user;
 
     return [
+        'id' => $user->id,
         'name'   => $user->name,
         'email'  => $user->email,
         'phone'  => $user->phone,
