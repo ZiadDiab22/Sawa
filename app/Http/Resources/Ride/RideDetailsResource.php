@@ -45,6 +45,10 @@ class RideDetailsResource extends JsonResource
             'passenger' => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
+                'phone' => $this->user->phone,
+                'email' => $this->user->email,
+                'profile_image' => $this->user->profile_image,
+                'gender' => $this->user->gender,
             ],
 
             'driver_rating' => [

@@ -44,7 +44,7 @@ class RideInfoRepository
         return Ride::with([
             'driver:id,name,phone',
             'driver.location',
-            'user:id,name,phone',
+            'user',
             'driverProfile',
             'statusHistory',
             'driverRating',
