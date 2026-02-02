@@ -44,17 +44,21 @@ class RideInfoRepository
         return Ride::with([
             'driver:id,name,phone',
             'driver.location',
-            'user',
+            'user:id,name,phone',
             'driverProfile',
             'statusHistory',
             'driverRating',
             'passengerRating',
             'driverProfit',
             'companyCommission',
-        ])->findOrFail($rideId);
+        ])
+            ->withAvg('driverRatings', 'rating')
+            ->withAvg('passengerRatings', 'rating')
+            ->findOrFail($rideId);
     }
 
-    public function findRequestWithDetails(int $id)
+
+    public function findRequestWithDetails(int $id): Collection
     {
         return RideRequest::query()->where('ride_requests.id', $id)
             ->leftJoin('users as u', 'u.id', 'ride_requests.user_id')

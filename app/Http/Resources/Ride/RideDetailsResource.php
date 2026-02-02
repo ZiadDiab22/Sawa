@@ -61,6 +61,18 @@ class RideDetailsResource extends JsonResource
                 'comment' => $this->passengerRating?->comment,
             ],
 
+            'rating' => [
+                'driver_avg_rating' =>
+                    $this->driver_ratings_avg_rating !== null
+                        ? round($this->driver_ratings_avg_rating, 1)
+                        : null,
+
+                'passenger_avg_rating' =>
+                    $this->passenger_ratings_avg_rating !== null
+                        ? round($this->passenger_ratings_avg_rating, 1)
+                        : null,
+            ],
+
             'financials' => [
                 'driver_profit' => $this->driverProfit?->amount,
                 'company_commission' => $this->companyCommission?->amount,

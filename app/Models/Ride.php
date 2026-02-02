@@ -38,16 +38,6 @@ class Ride extends Model
         return $this->belongsTo(RideRequest::class, 'ride_request_id');
     }
 
-    public function driver()
-    {
-        return $this->belongsTo(User::class, 'driver_id');
-    }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
     public function promoCode()
     {
         return $this->belongsTo(PromoCode::class);
@@ -78,18 +68,38 @@ class Ride extends Model
         return $this->hasOne(CompanyCommission::class, 'ride_id');
     }
 
-    public function passengerRating()
+    public function driverProfile()
     {
-        return $this->hasOne(PassengerRating::class, 'ride_id');
+        return $this->hasOne(DriverProfile::class, 'user_id', 'driver_id');
     }
 
     public function driverRating()
     {
-        return $this->hasOne(DriverRating::class, 'ride_id');
+        return $this->hasOne(DriverRating::class);
     }
 
-    public function driverProfile()
+    public function passengerRating()
     {
-        return $this->hasOne(DriverProfile::class, 'user_id', 'driver_id');
+        return $this->hasOne(PassengerRating::class);
+    }
+
+    public function driver()
+    {
+        return $this->belongsTo(User::class, 'driver_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function driverRatings()
+    {
+        return $this->hasMany(DriverRating::class, 'driver_id', 'driver_id');
+    }
+
+    public function passengerRatings()
+    {
+        return $this->hasMany(PassengerRating::class, 'user_id', 'user_id');
     }
 }
