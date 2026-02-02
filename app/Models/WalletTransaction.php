@@ -8,10 +8,10 @@ class WalletTransaction extends Model
 {
     protected $fillable = [
         'user_id',
-        'employee_id',
-        'amount',
-        'source',
         'ride_id',
+        'type',
+        'reason',
+        'amount',
     ];
 
     protected $casts = [

@@ -5,6 +5,7 @@ namespace App\Services\Ride;
 use App\Models\DriverProfile;
 use App\Models\Ride;
 use App\Models\Setting;
+use App\Models\WalletTransaction;
 use App\Repositories\DriverRepository;
 use App\Repositories\Ride\ProfitRepository;
 use App\Repositories\Ride\RideRepository;
@@ -113,6 +114,14 @@ class RideService
                 $this->drivers->updateStatus($driverId, 'suspended');
             }
 
+            WalletTransaction::query()->create([
+                'user_id' => $driverId,
+                'ride_id' => $ride->id,
+                'type' => 'debit',
+                'reason' => 'ride_commission',
+                'amount' => $companyAmount,
+            ]);
+
             return $this->set($ride);
         });
     }
@@ -182,6 +191,13 @@ class RideService
             if ($fee > 0) {
                 $this->deductCancellationFee($driverId, $fee);
                 $this->profits->createDriverProfit($driverId, $ride->id, -($fee));
+                WalletTransaction::query()->create([
+                    'user_id' => $driverId,
+                    'ride_id' => $ride->id,
+                    'type' => 'debit',
+                    'reason' => 'cancellation_penalty',
+                    'amount' => $fee,
+                ]);
             }
 
             return $ride->refresh();

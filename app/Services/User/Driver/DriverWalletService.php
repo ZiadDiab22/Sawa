@@ -24,12 +24,6 @@ class DriverWalletService
 
       $this->drivers->incrementWallet($driverId, $amount);
 
-      WalletTransaction::create([
-        "user_id" => $driverId,
-        "employee_id" => Auth::id(),
-        "amount" => $amount
-      ]);
-
       $LE = (int) Setting::where('key', 'LE')->value('value');
 
       $wallet = (int) DriverProfile::where('user_id', $driverId)->value('wallet');
@@ -37,6 +31,13 @@ class DriverWalletService
       if ($wallet > - (20 * $LE)) {
         $this->drivers->updateStatus($driverId, 'approved');
       }
+
+        WalletTransaction::query()->create([
+            'user_id' => $driverId,
+            'type' => 'credit',
+            'reason' => 'wallet_charge',
+            'amount' => $amount,
+        ]);
 
       return DriverProfile::where('user_id', $driverId)->get(['id', 'user_id', 'wallet', 'status']);
     });
