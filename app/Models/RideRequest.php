@@ -27,6 +27,7 @@ class RideRequest extends Model
         'pickup_lng' => 'float',
         'drop_lat' => 'float',
         'drop_lng' => 'float',
+        'user_avg_rating' => 'float',
     ];
 
     public function user()

@@ -57,18 +57,25 @@ class RideInfoRepository
             ->findOrFail($rideId);
     }
 
-
     public function findRequestWithDetails(int $id): Collection
     {
-        return RideRequest::query()->where('ride_requests.id', $id)
-            ->leftJoin('users as u', 'u.id', 'ride_requests.user_id')
-            ->leftJoin('vehicle_types as v', 'v.id', 'vehicle_type_id')
-            ->get(['ride_requests.*',
+        return RideRequest::query()
+            ->where('ride_requests.id', $id)
+            ->leftJoin('users as u', 'u.id', '=', 'ride_requests.user_id')
+            ->leftJoin('vehicle_types as v', 'v.id', '=', 'ride_requests.vehicle_type_id')
+            ->select([
+                'ride_requests.*',
                 'u.name as user_name',
                 'u.phone as user_phone',
                 'u.email as user_email',
                 'u.gender as user_gender',
                 'u.profile_image as profile_image',
-                'v.name as vehicle_type_name']);
+                'v.name as vehicle_type_name',
+                DB::raw('(
+                SELECT CAST(ROUND(AVG(rating), 1) AS DECIMAL(3,1))
+                FROM passenger_ratings
+                WHERE passenger_ratings.user_id = u.id
+            ) as user_avg_rating'),
+            ])->get();
     }
 }
