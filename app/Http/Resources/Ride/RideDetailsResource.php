@@ -25,6 +25,7 @@ class RideDetailsResource extends JsonResource
             'price' => $this->price,
             'duration_minutes' => $this->duration_minutes,
             'passengers' => $this->passengers,
+            'code' => $this->code,
 
             'driver' => [
                 'id' => $this->driver->id,

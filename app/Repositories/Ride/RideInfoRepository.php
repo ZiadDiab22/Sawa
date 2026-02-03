@@ -63,8 +63,10 @@ class RideInfoRepository
             ->where('ride_requests.id', $id)
             ->leftJoin('users as u', 'u.id', '=', 'ride_requests.user_id')
             ->leftJoin('vehicle_types as v', 'v.id', '=', 'ride_requests.vehicle_type_id')
+            ->leftJoin('rides as r', 'r.ride_request_id','ride_requests.id')
             ->select([
                 'ride_requests.*',
+                'r.id as ride_id',
                 'u.name as user_name',
                 'u.phone as user_phone',
                 'u.email as user_email',
