@@ -19,6 +19,7 @@ class RideAccepted implements ShouldBroadcastNow
     {
         \Log::info('RideAccepted fired', [
             'ride_id' => $this->ride->id,
+            'user_id' => $this->ride->user_id,
         ]);
 
         return new PrivateChannel('user.' . $this->ride->user_id);
