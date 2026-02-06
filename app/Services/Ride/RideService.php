@@ -2,6 +2,8 @@
 
 namespace App\Services\Ride;
 
+use App\Events\RideCancelledByDriver;
+use App\Events\RideCancelledByUser;
 use App\Models\DriverProfile;
 use App\Models\Ride;
 use App\Models\Setting;
@@ -154,6 +156,8 @@ class RideService
                 $userId
             );
 
+            broadcast(new RideCancelledByUser($ride))->toOthers();
+
             return $ride->refresh();
         });
     }
@@ -199,6 +203,7 @@ class RideService
                     'amount' => $fee,
                 ]);
             }
+            broadcast(new RideCancelledByDriver($ride))->toOthers();
 
             return $ride->refresh();
         });
