@@ -22,7 +22,7 @@ class RideCancelledByUser implements ShouldBroadcastNow
             'driver_id' => $this->ride->driver_id,
         ]);
 
-        return new PrivateChannel('user.' . $this->ride->driver_id);
+        return new PrivateChannel("drivers.{$this->ride->driver_id}");
     }
 
     public function broadcastAs(): string
