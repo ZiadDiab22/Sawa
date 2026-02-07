@@ -4,6 +4,8 @@ namespace App\Services\Ride;
 
 use App\Events\RideCancelledByDriver;
 use App\Events\RideCancelledByUser;
+use App\Events\RideCompleted;
+use App\Events\RideStarted;
 use App\Models\DriverProfile;
 use App\Models\Ride;
 use App\Models\Setting;
@@ -50,6 +52,8 @@ class RideService
                 'driver',
                 $driverId
             );
+
+            broadcast(new RideStarted($ride))->toOthers();
 
             return $this->set($ride);
         });
@@ -123,6 +127,8 @@ class RideService
                 'reason' => 'ride_commission',
                 'amount' => $companyAmount,
             ]);
+
+            broadcast(new RideCompleted($ride))->toOthers();
 
             return $this->set($ride);
         });

@@ -3,6 +3,7 @@
 namespace App\Services\Ride;
 
 use App\Events\NewRideRequestCreated;
+use App\Events\RideRequestCancelled;
 use App\Repositories\Driver\DriverLocationRepository;
 
 class RideBroadcastService
@@ -24,4 +25,18 @@ class RideBroadcastService
       );
     }
   }
+
+    public function sendCancelToNearbyDrivers($rideRequest): void
+    {
+        $drivers = $this->drivers->nearbyActiveDrivers(
+            $rideRequest->pickup_lat,
+            $rideRequest->pickup_lng
+        );
+
+        foreach ($drivers as $driver) {
+            broadcast(
+                new RideRequestCancelled($rideRequest, $driver->driver_id)
+            );
+        }
+    }
 }
