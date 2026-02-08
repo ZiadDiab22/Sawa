@@ -34,13 +34,12 @@ class DriverLocationController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'driver_id' => 'required|exists:users,id',
             'lat'       => 'required|numeric',
             'lng'       => 'required|numeric',
         ]);
 
         $location = $this->service->storeOrUpdateLocation(
-            $request->driver_id,
+            Auth::id(),
             $request->lat,
             $request->lng
         );
