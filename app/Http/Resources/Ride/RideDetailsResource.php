@@ -32,7 +32,9 @@ class RideDetailsResource extends JsonResource
                 'name' => $this->driver->name,
                 'phone' => $this->driver->phone,
                 'email' => $this->driver->email,
-                'profile_image' => $this->driver->profile_image,
+                'profile_image' =>  $this->driver->profile_image
+                    ? asset('storage/' . $this->driver->profile_image)
+                    : null,
                 'gender' => $this->driver->gender,
 
                 'location' => [
@@ -53,16 +55,18 @@ class RideDetailsResource extends JsonResource
                 'name' => $this->user->name,
                 'phone' => $this->user->phone,
                 'email' => $this->user->email,
-                'profile_image' => $this->user->profile_image,
+                'profile_image' => $this->user->profile_image
+                    ? asset('storage/' . $this->user->profile_image)
+                    : null,
                 'gender' => $this->user->gender,
             ],
 
             'driver_rating' => [
-                'rating'  => $this->driverRating?->rating,
+                'rating' => $this->driverRating?->rating,
                 'comment' => $this->driverRating?->comment,
             ],
             'passenger_rating' => [
-                'rating'  => $this->passengerRating?->rating,
+                'rating' => $this->passengerRating?->rating,
                 'comment' => $this->passengerRating?->comment,
             ],
 

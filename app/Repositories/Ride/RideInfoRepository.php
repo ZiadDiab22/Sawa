@@ -42,9 +42,9 @@ class RideInfoRepository
     public function findWithDetails(int $rideId)
     {
         return Ride::with([
-            'driver:id,name,phone',
+            'driver',
             'driver.location',
-            'user:id,name,phone',
+            'user',
             'driverProfile',
             'statusHistory',
             'driverRating',
@@ -59,11 +59,11 @@ class RideInfoRepository
 
     public function findRequestWithDetails(int $id): Collection
     {
-        return RideRequest::query()
+        $data = RideRequest::query()
             ->where('ride_requests.id', $id)
             ->leftJoin('users as u', 'u.id', '=', 'ride_requests.user_id')
             ->leftJoin('vehicle_types as v', 'v.id', '=', 'ride_requests.vehicle_type_id')
-            ->leftJoin('rides as r', 'r.ride_request_id','ride_requests.id')
+            ->leftJoin('rides as r', 'r.ride_request_id', 'ride_requests.id')
             ->select([
                 'ride_requests.*',
                 'r.id as ride_id',
@@ -78,6 +78,18 @@ class RideInfoRepository
                 FROM passenger_ratings
                 WHERE passenger_ratings.user_id = u.id
             ) as user_avg_rating'),
-            ])->get();
+            ])
+            ->get();
+
+        $data->transform(function ($item) {
+            $item->profile_image = $item->profile_image
+                ? asset('storage/' . $item->profile_image)
+                : null;
+
+            return $item;
+        });
+
+        return $data;
     }
+
 }
