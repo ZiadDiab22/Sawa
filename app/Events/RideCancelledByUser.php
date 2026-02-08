@@ -9,7 +9,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class RideAccepted implements ShouldBroadcastNow
+class RideCancelledByUser implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -17,23 +17,24 @@ class RideAccepted implements ShouldBroadcastNow
 
     public function broadcastOn(): PrivateChannel
     {
-        \Log::info('RideAccepted fired', [
+        \Log::info('RideCancelledByUser fired', [
             'ride_id' => $this->ride->id,
-            'user_id' => $this->ride->user_id,
+            'driver_id' => $this->ride->driver_id,
         ]);
 
-        return new PrivateChannel('user.' . $this->ride->user_id);
+        return new PrivateChannel("drivers.{$this->ride->driver_id}");
     }
 
     public function broadcastAs(): string
     {
-        return 'ride.accepted';
+        return 'ride.cancelled_by_user';
     }
 
     public function broadcastWith(): array
     {
         return [
             'ride_id' => $this->ride->id,
+            'message' => 'Passenger cancelled the ride',
         ];
     }
 }

@@ -45,7 +45,6 @@ Route::prefix('user')->group(function () {
         Route::get('/history', [RideRequestController::class, 'history']);
         Route::get('/historyById', [RideRequestController::class, 'historyById']);
         Route::get('/completed', [RideRequestController::class, 'completed']);
-
     });
 });
 
@@ -81,6 +80,7 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::post('/location', [DriverLocationController::class, 'store'])->middleware(['check_driver']);
     Route::get('/location', [DriverLocationController::class, 'show'])->middleware(['check_driver']);
     Route::get('/ride-request/{ride_request_id}', [RideInfoController::class, 'get']);
+    Route::get('/wallet', [DriverWalletController::class, 'get']);
 
     Route::delete( '/deleteFile/{field}',[DriverProfileController::class, 'deleteFile']);
     Route::post('/updateFile/{field}',[DriverProfileController::class, 'updateFile'] );

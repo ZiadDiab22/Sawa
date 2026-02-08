@@ -27,6 +27,7 @@ class RideRequestRepository
       'distance_km'      => $request->distance_km,
       'price'            => $request->price,
       'duration_minutes' => $request->duration_minutes,
+      'passengers' => $request->passengers,
 
       'status' => 'driver_on_way',
       'code'   => $code,

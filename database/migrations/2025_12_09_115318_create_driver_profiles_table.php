@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('driver_profiles', function (Blueprint $table) {
@@ -19,11 +16,6 @@ return new class extends Migration
             $table->foreignId('user_id')
                 ->constrained('users')
                 ->cascadeOnDelete();
-
-            // $table->foreignId('city_id')
-            //     ->nullable()
-            //     ->constrained('cities')
-            //     ->nullOnDelete();
 
             $table->foreignId('vehicle_type_id')
                 ->nullable()
@@ -36,7 +28,6 @@ return new class extends Migration
                 ->constrained('vehicle_makes')
                 ->nullOnDelete();
 
-            // $table->string('residence_location')->nullable();
             $table->string('vehicle_model');
             $table->smallInteger('vehicle_year');
             $table->string('vehicle_color');
@@ -55,9 +46,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('driver_profiles');

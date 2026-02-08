@@ -25,6 +25,10 @@ class RideRequestService
         throw new \Exception('This Request already cancelled');
       }
 
+      if ($rideRequest->status === 'accepted') {
+        throw new \Exception('This Request cant be cancelled');
+      }
+
       $this->rideRequests->updateStatus($rideRequest, 'cancelled');
 
       return $rideRequest->refresh();

@@ -19,6 +19,7 @@ class RideRequest extends Model
         'duration_minutes',
         'vehicle_type_id',
         'status',
+        'passengers'
     ];
 
     protected $casts = [
@@ -26,6 +27,7 @@ class RideRequest extends Model
         'pickup_lng' => 'float',
         'drop_lat' => 'float',
         'drop_lng' => 'float',
+        'user_avg_rating' => 'float',
     ];
 
     public function user()

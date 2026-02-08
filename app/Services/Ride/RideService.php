@@ -2,9 +2,14 @@
 
 namespace App\Services\Ride;
 
+use App\Events\RideCancelledByDriver;
+use App\Events\RideCancelledByUser;
+use App\Events\RideCompleted;
+use App\Events\RideStarted;
 use App\Models\DriverProfile;
 use App\Models\Ride;
 use App\Models\Setting;
+use App\Models\WalletTransaction;
 use App\Repositories\DriverRepository;
 use App\Repositories\Ride\ProfitRepository;
 use App\Repositories\Ride\RideRepository;
@@ -47,6 +52,8 @@ class RideService
                 'driver',
                 $driverId
             );
+
+            broadcast(new RideStarted($ride))->toOthers();
 
             return $this->set($ride);
         });
@@ -113,6 +120,16 @@ class RideService
                 $this->drivers->updateStatus($driverId, 'suspended');
             }
 
+            WalletTransaction::query()->create([
+                'user_id' => $driverId,
+                'ride_id' => $ride->id,
+                'type' => 'debit',
+                'reason' => 'ride_commission',
+                'amount' => $companyAmount,
+            ]);
+
+            broadcast(new RideCompleted($ride))->toOthers();
+
             return $this->set($ride);
         });
     }
@@ -144,6 +161,8 @@ class RideService
                 'passenger',
                 $userId
             );
+
+            broadcast(new RideCancelledByUser($ride))->toOthers();
 
             return $ride->refresh();
         });
@@ -182,7 +201,15 @@ class RideService
             if ($fee > 0) {
                 $this->deductCancellationFee($driverId, $fee);
                 $this->profits->createDriverProfit($driverId, $ride->id, -($fee));
+                WalletTransaction::query()->create([
+                    'user_id' => $driverId,
+                    'ride_id' => $ride->id,
+                    'type' => 'debit',
+                    'reason' => 'cancellation_penalty',
+                    'amount' => $fee,
+                ]);
             }
+            broadcast(new RideCancelledByDriver($ride))->toOthers();
 
             return $ride->refresh();
         });

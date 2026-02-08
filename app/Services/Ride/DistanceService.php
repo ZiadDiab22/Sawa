@@ -227,6 +227,4 @@ class DistanceService
             throw new \Exception('Unexpected Error while fetching completed ride');
         }
     }
-
-
 }

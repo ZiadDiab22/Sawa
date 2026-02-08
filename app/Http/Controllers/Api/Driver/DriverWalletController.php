@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Driver;
 
+use App\Models\WalletTransaction;
 use Illuminate\Http\Request;
 use App\Models\DriverProfile;
 use App\Http\Controllers\Controller;
@@ -12,7 +13,9 @@ class DriverWalletController extends Controller
 {
     public function __construct(
         private DriverWalletService $service
-    ) {}
+    )
+    {
+    }
 
     public function add(Request $request, int $id)
     {
@@ -25,13 +28,13 @@ class DriverWalletController extends Controller
 
         $profile = $this->service->add(
             $id,
-            (float) $request->amount
+            (float)$request->amount
         );
 
         return response()->json(['status' => true, 'message' => $profile]);
     }
 
-     public function showWallet()
+    public function showWallet()
     {
         $userId = Auth::id();
 
@@ -43,5 +46,12 @@ class DriverWalletController extends Controller
                 'wallet' => $wallet
             ]
         ]);
+    }
+
+    public function get()
+    {
+        $userId = Auth::id();
+        $data = $this->service->getWalletData($userId);
+        return response()->json(['status' => true, 'data' => $data]);
     }
 }

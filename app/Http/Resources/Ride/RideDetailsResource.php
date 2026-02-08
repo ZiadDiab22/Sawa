@@ -24,10 +24,16 @@ class RideDetailsResource extends JsonResource
             'distance_km' => $this->distance_km,
             'price' => $this->price,
             'duration_minutes' => $this->duration_minutes,
+            'passengers' => $this->passengers,
+            'code' => $this->code,
 
             'driver' => [
                 'id' => $this->driver->id,
                 'name' => $this->driver->name,
+                'phone' => $this->driver->phone,
+                'email' => $this->driver->email,
+                'profile_image' => $this->driver->profile_image,
+                'gender' => $this->driver->gender,
 
                 'location' => [
                     'lat' => $this->driver->location?->lat,
@@ -45,6 +51,10 @@ class RideDetailsResource extends JsonResource
             'passenger' => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
+                'phone' => $this->user->phone,
+                'email' => $this->user->email,
+                'profile_image' => $this->user->profile_image,
+                'gender' => $this->user->gender,
             ],
 
             'driver_rating' => [
@@ -54,6 +64,18 @@ class RideDetailsResource extends JsonResource
             'passenger_rating' => [
                 'rating'  => $this->passengerRating?->rating,
                 'comment' => $this->passengerRating?->comment,
+            ],
+
+            'rating' => [
+                'driver_avg_rating' =>
+                    $this->driver_ratings_avg_rating !== null
+                        ? round($this->driver_ratings_avg_rating, 1)
+                        : null,
+
+                'passenger_avg_rating' =>
+                    $this->passenger_ratings_avg_rating !== null
+                        ? round($this->passenger_ratings_avg_rating, 1)
+                        : null,
             ],
 
             'financials' => [

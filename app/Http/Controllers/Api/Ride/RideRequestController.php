@@ -73,9 +73,11 @@ class RideRequestController extends Controller
     }
 
 
-    public function cancel(Request $request, int $id, RideRequestService $service)
+    public function cancel(Request $request, int $id, RideRequestService $service,RideBroadcastService $broadcastService)
     {
         $rideRequest = $service->cancel($id, Auth::id());
+
+        $broadcastService->sendCancelToNearbyDrivers($rideRequest);
 
         return response()->json([
             'status' => true,
