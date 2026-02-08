@@ -3,6 +3,7 @@
 namespace App\Repositories\Admin;
 
 use App\Models\Ride;
+use App\Models\User;
 use App\Models\DriverProfit;
 use App\Models\DriverProfile;
 use App\Models\DriverDocument;
@@ -832,17 +833,171 @@ public function toggleBannedDriver(int $driverId): DriverProfile
                 'r.price',
                 DB::raw('DATE(r.created_at) as booking_date'),
             ])
+
             ->get();
     }
+
+    //Rider Managment
+   public function getRiders(int $perPage = 100)
+{
+    return DB::table('users as u')
+        ->join('user_roles as ur', 'ur.user_id', '=', 'u.id')
+        ->where('ur.role_id', 1)
+        ->select([
+            'u.id',
+            'u.name',
+            'u.email',
+            'u.phone',
+            'u.profile_image',
+            'u.blocked',
+            'u.created_at',
+        ])
+        ->orderByDesc('u.created_at')
+        ->paginate($perPage);
+}
+
+    public function searchRiders(int $roleId ,string $search)
+{
+    return User::query()
+            ->join('user_roles', 'users.id', '=', 'user_roles.user_id')
+            ->where('user_roles.role_id', $roleId)
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('users.name', 'like', "%{$search}%")
+                    ->orWhere('users.email', 'like', "%{$search}%")
+                    ->orWhere('users.phone', 'like', "%{$search}%");
+                });
+            })
+            ->select('users.*')
+            ->orderByDesc('users.created_at')
+            ->paginate(10);
 }
 
 
+public function deleteUsersByIds(array $ids): array
+{
+    $userIds = DB::table('user_roles')
+        ->whereIn('user_id', $ids)
+        ->where('role_id', 3)
+        ->pluck('user_id')
+        ->toArray();
+
+    $protectedIds = DB::table('user_roles')
+        ->whereIn('user_id', $ids)
+        ->whereIn('role_id', [1, 2])
+        ->pluck('user_id')
+        ->unique()
+        ->toArray();
+
+    if (empty($userIds)) {
+        return [
+            'status' => 'forbidden',
+            'deleted_count' => 0,
+            'protected_ids' => $protectedIds,
+        ];
+    }
+
+    DB::transaction(function () use ($userIds) {
+        User::whereIn('id', $userIds)->delete();
+    });
+
+    return [
+        'status' => 'success',
+        'deleted_count' => count($userIds),
+        'protected_ids' => $protectedIds,
+    ];
+}
 
 
+public function toggleRiderBlock(int $userId): array
+    {
+        // تحقق إنو Rider
+        $isRider = DB::table('user_roles')
+            ->where('user_id', $userId)
+            ->where('role_id', 1) // Rider
+            ->exists();
+
+        if (!$isRider) {
+            return [
+                'status' => 'forbidden'
+            ];
+        }
+
+        $user = User::findOrFail($userId);
+
+        $user->blocked = !$user->blocked;
+        $user->save();
+
+        return [
+            'status'  => 'success',
+            'blocked' => $user->blocked,
+        ];
+    }
+
+    public function getActiveRiders(int $perPage = 100)
+{
+    return DB::table('users as u')
+        ->join('user_roles as ur', 'ur.user_id', '=', 'u.id')
+        ->where('ur.role_id', 1)
+        ->where('u.blocked', false)
+        ->select([
+            'u.id',
+            'u.name',
+            'u.email',
+            'u.phone',
+            'u.profile_image',
+            'u.created_at',
+        ])
+        ->orderByDesc('u.created_at')
+        ->paginate($perPage);
+}
 
 
+public function getInActiveRiders(int $perPage = 100)
+{
+    return DB::table('users as u')
+        ->join('user_roles as ur', 'ur.user_id', '=', 'u.id')
+        ->where('ur.role_id', 1)
+        ->where('u.blocked', true)
+        ->select([
+            'u.id',
+            'u.name',
+            'u.email',
+            'u.phone',
+            'u.profile_image',
+            'u.created_at',
+        ])
+        ->orderByDesc('u.created_at')
+        ->paginate($perPage);
+}
 
+  public function findRiderById(int $riderId): User
+    {
+        return User::query()
+            ->join('user_roles', 'users.id', '=', 'user_roles.user_id')
+            ->where('user_roles.role_id', 1) // Rider
+            ->where('users.id', $riderId)
+            ->select('users.*')
+            ->firstOrFail();
+    }
 
+      public function getRiderRideStats(int $riderId): array
+    {
+        $stats = DB::table('rides')
+            ->where('user_id', $riderId)
+            ->selectRaw("
+                COUNT(*) as total_rides,
+                SUM(CASE WHEN status IN ('driver_on_way','on_going') THEN 1 ELSE 0 END) as live_rides,
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_rides,
+                SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_rides
+            ")
+            ->first();
 
-
-
+        return [
+            'total_rides'     => (int) $stats->total_rides,
+            'live_rides'      => (int) $stats->live_rides,
+            'completed_rides' => (int) $stats->completed_rides,
+            'cancelled_rides' => (int) $stats->cancelled_rides,
+        ];
+    }
+}

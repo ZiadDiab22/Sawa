@@ -3,6 +3,7 @@
 namespace App\Services\Admin;
 
 use Exception;
+use Carbon\Carbon;
 use App\Models\DriverDocument;
 use Illuminate\Support\Facades\DB;
 use App\Repositories\UserRepository;
@@ -550,4 +551,154 @@ public function toggleBannedDriver(int $driverId)
             ];
         })->toArray();
     }
+
+    //Rider Managment
+
+    public function ridersList(int $perPage = 100): array
+    {
+        $riders = $this->AdminRepository->getRiders($perPage);
+
+        return [
+            'data' => collect($riders->items())->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'profile_image' => $user->profile_image
+                    ? asset('storage/' . $user->profile_image)
+                    : null,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+
+                    'registered_on' => [
+                    'date' => Carbon::parse($user->created_at)->format('d M Y'),
+                    'time' => Carbon::parse($user->created_at)->format('h:i A'),
+                    ],
+
+
+                    'status' => $user->blocked ? 'inactive' : 'active',
+                ];
+            }),
+
+            'meta' => [
+                'current_page' => $riders->currentPage(),
+                'per_page' => $riders->perPage(),
+                'total' => $riders->total(),
+                'last_page' => $riders->lastPage(),
+            ],
+        ];
+    }
+
+
+public function searchRiders(string $search)
+{
+        return $this->AdminRepository->searchRiders(1, $search);
+
+}
+
+    public function deleteRider(array $ids): array
+    {
+        return $this->AdminRepository->deleteUsersByIds($ids);
+    }
+    public function toggleRiderBlockStatus(int $userId): array
+    {
+        return $this->AdminRepository->toggleRiderBlock($userId);
+    }
+
+
+    public function activeRidersList(int $perPage = 100): array
+{
+    $riders = $this->AdminRepository->getActiveRiders($perPage);
+
+    return [
+        'data' => collect($riders->items())->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'profile_image' => $user->profile_image
+                    ? asset('storage/' . $user->profile_image)
+                    : null,
+                'email' => $user->email,
+                'phone' => $user->phone,
+
+                'registered_on' => [
+                    'date' => Carbon::parse($user->created_at)->format('d M Y'),
+                    'time' => Carbon::parse($user->created_at)->format('h:i A'),
+                ],
+
+                'status' => 'active',
+            ];
+        }),
+
+        'meta' => [
+            'current_page' => $riders->currentPage(),
+            'per_page' => $riders->perPage(),
+            'total' => $riders->total(),
+            'last_page' => $riders->lastPage(),
+        ],
+    ];
+}
+
+
+public function InactiveRidersList(int $perPage = 100): array
+{
+    $riders = $this->AdminRepository->getInActiveRiders($perPage);
+
+    return [
+        'data' => collect($riders->items())->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'profile_image' => $user->profile_image
+                    ? asset('storage/' . $user->profile_image)
+                    : null,
+                'email' => $user->email,
+                'phone' => $user->phone,
+
+                'registered_on' => [
+                    'date' => Carbon::parse($user->created_at)->format('d M Y'),
+                    'time' => Carbon::parse($user->created_at)->format('h:i A'),
+                ],
+
+                'status' => 'inactive',
+            ];
+        }),
+
+        'meta' => [
+            'current_page' => $riders->currentPage(),
+            'per_page' => $riders->perPage(),
+            'total' => $riders->total(),
+            'last_page' => $riders->lastPage(),
+        ],
+    ];
+}
+
+
+public function getRiderProfile(int $riderId): array
+    {
+        $rider = $this->AdminRepository->findRiderById($riderId);
+        $stats = $this->AdminRepository->getRiderRideStats($riderId);
+
+        return [
+            'id' => $rider->id,
+            'name' => $rider->name,
+            'profile_image' => $rider->profile_image
+                ? asset('storage/' . $rider->profile_image)
+                : null,
+
+            'personal_information' => [
+                'email' => $rider->email,
+                'phone' => $rider->phone,
+                'gender' => $rider->gender ?? 'unknown',
+                'joining_date' => Carbon::parse($rider->created_at)->format('Y-m-d'),
+            ],
+
+            'ride_information' => [
+                'live_rides'      => $stats['live_rides'],
+                'completed_rides' => $stats['completed_rides'],
+                'cancelled_rides' => $stats['cancelled_rides'],
+                'total_rides'     => $stats['total_rides'],
+            ],
+        ];
+    }
+
 }

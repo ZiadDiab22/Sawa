@@ -25,6 +25,8 @@ class ProfileService
             'image' => $user->profile_image
                 ? asset('storage/' . $user->profile_image)
                 : null,
+            'blocked' => (bool) $user->blocked,
+
         ];
     }
 
