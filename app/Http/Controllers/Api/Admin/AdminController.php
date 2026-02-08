@@ -482,4 +482,104 @@ public function toggleBannedDriver(int $id)
             'data'   => $service->driverRides($driverProfileId),
         ]);
     }
+
+    //Rider Managment
+
+    public function riders(Request $request)
+    {
+        $perPage = $request->get('per_page', 100);
+
+        return response()->json([
+            'status' => true,
+            'data' => $this->adminService->ridersList($perPage),
+        ]);
+    }
+
+
+    public function searchRiders(Request $request)
+    {
+    $search = $request->get('search');
+
+        return response()->json(
+            $this->adminService->searchRiders($search)
+        );
+    }
+
+    public function deleteRider(Request $request)
+{
+    $request->validate([
+        'ids'   => ['required', 'array'],
+        'ids.*' => ['integer', 'exists:users,id'],
+    ]);
+
+    $result = $this->adminService->deleteRider($request->ids);
+
+    // ❌ ولا واحد انحذف (كلهم Admin / Rider)
+    if ($result['status'] === 'forbidden') {
+        return response()->json([
+            'message' => 'ليس لديك صلاحية لحذف هذا المستخدم'
+        ], 403);
+    }
+
+    // ⚠️ حذف جزئي
+    if (!empty($result['protected_ids'])) {
+        return response()->json([
+            'message' => 'تم حذف بعض المستخدمين، والبعض الآخر لا تملك صلاحية لحذفه',
+            'deleted_count' => $result['deleted_count'],
+            'protected_ids' => $result['protected_ids'],
+        ]);
+    }
+
+    // ✅ حذف كامل
+    return response()->json([
+        'message' => 'Users deleted successfully',
+        'deleted_count' => $result['deleted_count'],
+    ]);
+}
+
+public function toggleRiderBlock(int $id)
+{
+    $result = $this->adminService->toggleRiderBlockStatus($id);
+
+    if ($result['status'] === 'forbidden') {
+        return response()->json([
+            'message' => 'لا تملك صلاحية حظر هذا المستخدم'
+        ], 403);
+    }
+
+    return response()->json([
+        'message' => $result['blocked']
+            ? 'تم حظر الراكب'
+            : 'تم رفع الحظر عن الراكب',
+        'blocked' => $result['blocked'],
+    ]);
+}
+
+public function activeRiders(Request $request)
+{
+    $perPage = $request->get('per_page', 100);
+
+    return response()->json([
+        'status' => true,
+        'data' => $this->adminService->activeRidersList($perPage),
+    ]);
+}
+
+public function inactiveRiders(Request $request)
+{
+    $perPage = $request->get('per_page', 100);
+
+    return response()->json([
+        'status' => true,
+        'data' => $this->adminService->InactiveRidersList($perPage),
+    ]);
+}
+
+    public function showRiderProfile(int $id)
+    {
+        return response()->json([
+            'status' => true,
+            'data' => $this->adminService->getRiderProfile($id),
+        ]);
+    }
 }
