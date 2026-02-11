@@ -67,6 +67,7 @@ class RideInfoRepository
             ->select([
                 'ride_requests.*',
                 'r.id as ride_id',
+                'r.driver_id as driver_id',
                 'u.name as user_name',
                 'u.phone as user_phone',
                 'u.email as user_email',
