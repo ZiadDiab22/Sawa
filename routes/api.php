@@ -148,6 +148,8 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::get('/rides/count',[AdminController::class, 'totalRidesCount']);
         Route::get('/rides/completed/count',[AdminController::class, 'completedRidesCount']);
         Route::get('/rides/last-five',[AdminController::class, 'lastFiveCompletedRides']);
+        Route::get('/dashboard',[AdminController::class, 'dashboard']);
+
         //vehicle_types
         Route::get('/vehicle-types',[AdminController::class, 'allVehicleTypes']);
         Route::patch('/vehicle-types/{id}/toggle-status', [AdminController::class, 'toggleVehicleTypeStatus']);
@@ -192,6 +194,9 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::get('/activeRiders', [AdminController::class, 'activeRiders']);
         Route::get('/inactiveRiders', [AdminController::class, 'inactiveRiders']);
         Route::get('/showRiderProfile/{id}', [AdminController::class, 'showRiderProfile']);
+        //About Us
+        Route::get('/show', [AboutUsController::class, 'show']);
+
 
 
 });

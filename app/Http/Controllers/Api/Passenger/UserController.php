@@ -24,21 +24,25 @@ class UserController extends Controller
     {
         $this->registerService->register($request->validated());
 
-        $status = $this->authService->sendOtp($request->phone);
+        $status = $this->authService->sendOtp( $request->phone,
+        $request->channel ?? 'email');
 
         return response()->json([
             'status' => $status,
-            'message' => 'OTP will be sent to your email address',
+            'message' => 'OTP has been sent successfully',
         ]);
     }
 
+
+
     public function login(UserLoginRequest $request)
     {
-        $status = $this->authService->sendOtp($request->phone);
+        $status = $this->authService->sendOtp( $request->phone,
+        $request->channel ?? 'email');
 
         return response()->json([
             'status' => true,
-            'message' => 'OTP will be sent to your email address',
+            'message' => 'OTP has been sent successfully',
         ]);
     }
 }

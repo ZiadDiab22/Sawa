@@ -23,6 +23,8 @@ class UserLoginRequest extends FormRequest
     {
         return [
             'phone' => 'required|string|exists:users,phone',
+            'channel' => 'nullable|in:email,whatsapp'
+
         ];
     }
 }

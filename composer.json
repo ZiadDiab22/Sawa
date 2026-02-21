@@ -11,6 +11,7 @@
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
+        "twilio/sdk": "^8.11",
         "vonage/client": "*"
     },
     "require-dev": {
