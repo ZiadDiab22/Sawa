@@ -18,7 +18,8 @@ class User extends Authenticatable
         'password',
         'blocked',
         'gender',
-        'profile_image'
+        'profile_image',
+        'fcm_token'
     ];
 
     public function roles():BelongsToMany

@@ -1,30 +1,31 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\OtpController;
+use \App\Http\Controllers\Api\Driver\DriverLocationController;
 use \App\Http\Controllers\Api\Ride\RideInfoController;
 use App\Http\Controllers\Api\AboutUsController;
-use App\Http\Controllers\Api\Auth\AuthController;
-use App\Http\Controllers\Api\Admin\CityController;
 use App\Http\Controllers\Api\Admin\AdminController;
-use App\Http\Controllers\Api\Admin\DriverProfitController;
+use App\Http\Controllers\Api\Admin\CityController;
 use App\Http\Controllers\Api\Admin\CompanyProfitController;
-use App\Http\Controllers\Api\Driver\DriverController;
-use App\Http\Controllers\Api\Passenger\UserController;
-use App\Http\Controllers\Api\Ride\RideRequestController;
-use App\Http\Controllers\Api\Admin\VehicleTypeController;
-use App\Http\Controllers\Api\Passenger\ProfileController;
-use App\Http\Controllers\Api\Driver\DriverRatingController;
-use App\Http\Controllers\Api\Passenger\PassengerRatingController;
 use App\Http\Controllers\Api\Admin\DriverApprovalController;
+use App\Http\Controllers\Api\Admin\DriverProfitController;
+use App\Http\Controllers\Api\Admin\VehicleTypeController;
+use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Driver\DriverController;
 use App\Http\Controllers\Api\Driver\DriverDashboardController;
 use App\Http\Controllers\Api\Driver\DriverDocumentController;
 use App\Http\Controllers\Api\Driver\DriverHistoryController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
+use App\Http\Controllers\Api\Driver\DriverRatingController;
 use App\Http\Controllers\Api\Driver\DriverWalletController;
+use App\Http\Controllers\Api\Passenger\PassengerRatingController;
+use App\Http\Controllers\Api\Passenger\ProfileController;
+use App\Http\Controllers\Api\Passenger\UserController;
 use App\Http\Controllers\Api\Ride\RideController;
-use \App\Http\Controllers\Api\Driver\DriverLocationController;
+use App\Http\Controllers\Api\Ride\RideRequestController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OtpController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 
 Route::prefix('user')->group(function () {
@@ -219,3 +220,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/admin/driver-documents/{id}/approve', [DriverDocumentController::class, 'approve'])->middleware(['check_admin']);
     Route::put('/admin/driver-documents/{id}/reject', [DriverDocumentController::class, 'reject'])->middleware(['check_admin']);
     Route::get('/admin/driver-documents/pending', [DriverDocumentController::class, 'pendingDocuments'])->middleware(['check_admin']);
+
+
+
+    Route::middleware('auth:sanctum')->post('/save-fcm-token', [NotificationController::class, 'saveToken']);
+    
+Route::get('/test-notification', function () {
+    $user = \App\Models\User::first();
+
+    if ($user && $user->fcm_token) {
+        app(\App\Services\FirebaseNotificationService::class)
+            ->send($user->fcm_token, "طلب جديد 🚕", "عندك طلب تاكسي جديد");
+
+        return "Notification Sent";
+    }
+
+    return "No Token Found";
+});

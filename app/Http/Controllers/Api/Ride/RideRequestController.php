@@ -30,6 +30,18 @@ class RideRequestController extends Controller
             'duration_minutes' => $estimate['duration'],
         ]);
 
+        try {
+        $user = $rideRequest->user;
+        if ($user && $user->fcm_token) { // تأكد أن المستخدم لديه FCM token
+            $title = "طلبك تم تسجيله";
+            $body  = "تم استلام طلبك بنجاح وسيتم التواصل معك حال وجود سائق متاح.";
+
+            $firebaseService = new \App\Services\FirebaseNotificationService();
+            $firebaseService->send($user->fcm_token, $title, $body);
+        }
+    } catch (\Exception $e) {
+        \Log::error("Failed to send ride creation notification: ".$e->getMessage());
+    }
         $broadcastService->sendToNearbyDrivers($rideRequest);
 
         return response()->json([
