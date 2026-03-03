@@ -96,7 +96,7 @@ class DistanceService
             $basePrice += $basePrice * (0.5 * $extraPassengers);
         }
 
-        return (int)round($basePrice);
+        return (int)ceil($basePrice / 5000) * 5000;
     }
 
     public function get(string $key): ?float
