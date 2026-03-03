@@ -40,6 +40,7 @@ Route::prefix('user')->group(function () {
         Route::post('rating', [DriverRatingController::class, 'store']);
         Route::put('rating/{id}', [DriverRatingController::class, 'update']);
         Route::delete('rating/{id}', [DriverRatingController::class, 'destroy']);
+        Route::get('/price', [RideRequestController::class, 'getPrice']);
         Route::post('/ride-request', [RideRequestController::class, 'store']);
         Route::post('/ride-request/{id}/cancel', [RideRequestController::class, 'cancel']);
         Route::post('/ride/{id}/cancel', [RideController::class, 'userCancel']);
@@ -224,7 +225,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     Route::middleware('auth:sanctum')->post('/save-fcm-token', [NotificationController::class, 'saveToken']);
-    
+
 Route::get('/test-notification', function () {
     $user = \App\Models\User::first();
 

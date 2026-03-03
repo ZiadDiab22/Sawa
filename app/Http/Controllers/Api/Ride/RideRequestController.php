@@ -50,6 +50,20 @@ class RideRequestController extends Controller
         ], 201);
     }
 
+    public function getPrice(
+        CalculateRideRequest $request,
+        DistanceService $service,
+    ) {
+        $estimate = $service->estimate($request->validated());
+
+        return response()->json([
+            'status' => true,
+            'distance_km' => $estimate['rideDistance'],
+            'price'       => $estimate['price'],
+            'duration_minutes' => $estimate['duration'],
+        ], 201);
+    }
+
     public function skip(Request $request, DistanceService $service)
     {
         $request->validate([
