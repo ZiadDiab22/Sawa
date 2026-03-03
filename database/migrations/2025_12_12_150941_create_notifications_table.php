@@ -21,8 +21,18 @@ return new class extends Migration
             $table->string('title');
             $table->text('body');
 
-            $table->enum('type', ['system', 'promo', 'ride_update', 'message'])
-                ->default('system');
+            $table->enum('type', [
+            'new_ride_request',
+            'ride_request_accepted',
+            'ride_request_cancelled',
+            'driver_on_way',
+            'ride_started',
+            'ride_completed',
+            'ride_cancelled',
+            'payment_received',
+            'promo',
+            'system'
+]);
 
             $table->boolean('is_read')->default(false);
 

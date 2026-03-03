@@ -224,6 +224,9 @@ public function getVehicleMakesByType(string $type)
         return $drivers->through(function ($driver) {
             return [
                 'id' => $driver->id,
+                 'document_ids' => $driver->documents
+                ->pluck('id')
+                ->values(),
                 'driver' => [
                     'name'  => $driver->user->name,
                     'email' => $driver->user->email,

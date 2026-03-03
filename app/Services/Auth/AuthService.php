@@ -4,6 +4,9 @@ namespace App\Services\Auth;
 use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\Mail;
+use App\Services\Notifications\WhatsAppService;
+// use Illuminate\Support\Facades\Hash;
+
 
 class AuthService
 {
@@ -14,21 +17,27 @@ class AuthService
     $this->userRepository = $userRepository;
   }
 
-  public function sendOtp(string $phone): bool
-  {
+  
+   public function sendOtp(string $phone, string $channel = 'email'): bool
+{
     $user = $this->userRepository->findByPhone($phone);
-    if (!$user) throw new \Exception('Invalid credentials',401);
+    if (!$user) throw new \Exception('Invalid credentials', 401);
 
     $otp = rand(100000, 999999);
     $this->userRepository->updateOtp($user, $otp);
 
-    // 🔧 تعديل: إرسال OTP إلى الإيميل بعد جلبه عبر رقم الهاتف (بدل SMS)
-    // --------------------------------------------
-    Mail::to($user->email)->send(new \App\Mail\OtpMail($otp, $user->name));
-    // --------------------------------------------
+    if ($channel === 'email') {
+        Mail::to($user->email)
+            ->send(new \App\Mail\OtpMail($otp, $user->name));
+    } elseif ($channel === 'whatsapp') {
+        app(WhatsAppService::class)->sendOtp($user->phone, $otp);
+    } else {
+        throw new \Exception('Invalid channel', 400);
+    }
 
     return true;
-  }
+}
+
 
   public function verifyOtp(string $phone, string $otp): string
   {

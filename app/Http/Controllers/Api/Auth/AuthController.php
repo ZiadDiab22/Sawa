@@ -60,17 +60,19 @@ public function resendOtp(Request $request)
 {
     $request->validate([
         'phone' => 'required|string|exists:users,phone',
+        'channel' => 'nullable|in:email,whatsapp'
     ]);
 
-    $user = User::where('phone', $request->phone)->first();
-    $status = $this->authService->sendOtp($user->phone); // نفس اسم الدالة تبعك
+    $status = $this->authService->sendOtp(
+        $request->phone,
+        $request->channel ?? 'email'
+    );
 
     return response()->json([
         'status' => $status,
-        'message' => 'OTP has been resent to your email',
+        'message' => 'OTP has been sent successfully',
     ]);
 }
-
 
 
 }

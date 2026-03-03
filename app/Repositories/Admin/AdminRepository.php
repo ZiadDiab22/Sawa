@@ -312,6 +312,8 @@ public function getVehicleMakesByType(string $type)
             ->with([
                 'user:id,name,email,phone',
                 'vehicleMake:id,name',
+                'documents:id,driver_id,type,status'
+
             ])
             ->select('driver_profiles.*')
             ->selectSub(
