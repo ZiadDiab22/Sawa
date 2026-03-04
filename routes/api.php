@@ -40,6 +40,7 @@ Route::prefix('user')->group(function () {
         Route::post('rating', [DriverRatingController::class, 'store']);
         Route::put('rating/{id}', [DriverRatingController::class, 'update']);
         Route::delete('rating/{id}', [DriverRatingController::class, 'destroy']);
+        Route::get('/price', [RideRequestController::class, 'getPrice']);
         Route::post('/ride-request', [RideRequestController::class, 'store']);
         Route::post('/ride-request/{id}/cancel', [RideRequestController::class, 'cancel']);
         Route::post('/ride/{id}/cancel', [RideController::class, 'userCancel']);
@@ -238,7 +239,7 @@ Route::middleware('auth:sanctum')->group(function () {
 // Route::get('/test-notification', function () {
 //     $user = \App\Models\User::first();
 
-//     if ($user && $user->fcm_token) {
+// //     if ($user && $user->fcm_token) {
 //         app(\App\Services\FirebaseNotificationService::class)
 //             ->send($user->fcm_token, "طلب جديد 🚕", "عندك طلب تاكسي جديد");
 
