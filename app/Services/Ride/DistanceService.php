@@ -8,6 +8,7 @@ use App\Models\RideRequest;
 use App\Models\RideRequestResponse;
 use App\Repositories\Ride\RideRequestRepository;
 use App\Repositories\Ride\RideStatusHistoryRepository;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 
 class DistanceService
@@ -157,10 +158,29 @@ class DistanceService
             );
 
             DriverProfile::query()->where('user_id', $driverId)->update(['has_ride' => true]);
-
             broadcast(new RideAccepted($ride))->toOthers();
 
-            return $ride;
+            $user = $ride->user;
+
+$notificationResult = NotificationService::sendToUser(
+    $user,
+    'ride_accepted',
+    'السائق قبل رحلتك',
+    'تم قبول رحلتك من قبل السائق، سيتم التواصل معك قريباً.',
+    ['ride_request_id' => (string) $ride->ride_request_id]
+);
+
+$response = [
+    'ride' => $ride,
+    'notification' => [
+        'type' => 'ride_accepted',
+        'title' => 'السائق قبل رحلتك',
+        'body'  => 'تم قبول رحلتك من قبل السائق، سيتم التواصل معك قريباً.',
+        'firebase_result' => $notificationResult
+    ]
+];
+
+return $response;
         });
     }
 

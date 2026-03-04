@@ -12,17 +12,67 @@ class FirebaseNotificationService
 
     public function __construct()
     {
-        $factory = (new Factory)
-            ->withServiceAccount(config('firebase.credentials.file'));
+        try {
+            $serviceAccountPath = storage_path('app/firebase/firebase.json');
 
-        $this->messaging = $factory->createMessaging();
+            if (!file_exists($serviceAccountPath)) {
+                \Log::error('Firebase Service Account file not found at: ' . $serviceAccountPath);
+                return;
+            }
+
+            $factory = (new Factory)
+                ->withServiceAccount($serviceAccountPath);
+
+            $this->messaging = $factory->createMessaging();
+
+        } catch (\Throwable $e) {
+            \Log::error('Firebase initialization failed: ' . $e->getMessage());
+        }
     }
 
-    public function send($token, $title, $body)
+    /**
+     * إرسال إشعار لمستخدم
+     *
+     * @param string $token
+     * @param string $title
+     * @param string $body
+     * @param array $data
+     * @return mixed
+     */
+    public function send(string $token, string $title, string $body, array $data = [])
     {
-        $message = CloudMessage::withTarget('token', $token)
-            ->withNotification(Notification::create($title, $body));
+        if (!$this->messaging) {
+            \Log::warning('Firebase Messaging service not initialized. Notification skipped.');
+            return false;
+        }
 
-        return $this->messaging->send($message);
+        try {
+            $message = CloudMessage::withTarget('token', $token)
+                ->withNotification(Notification::create($title, $body))
+                ->withData($data);
+
+            $result = $this->messaging->send($message);
+
+            \Log::info('Firebase send result:', [
+                'token' => $token,
+                'title' => $title,
+                'body'  => $body,
+                'data'  => $data,
+                'result'=> $result,
+            ]);
+
+            return $result;
+
+        } catch (\Throwable $e) {
+            \Log::error('Firebase error:', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+                'token'   => $token,
+                'title'   => $title,
+                'body'    => $body,
+            ]);
+
+            return false;
+        }
     }
 }

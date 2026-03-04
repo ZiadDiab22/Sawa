@@ -2,23 +2,41 @@
 
 namespace App\Services;
 
-use App\Models\Notification;
-use App\Services\FirebaseNotificationService;
+use App\Models\User;
 
 class NotificationService
 {
-    public static function send($user, $title, $body, $type, $data = [])
+    public static function sendToUser(User $user, string $type, string $title, string $body, array $data = [])
     {
-        Notification::create([
-            'user_id' => $user->id,
-            'title'   => $title,
-            'body'    => $body,
-            'type'    => $type,
-        ]);
+        if (!$user || empty($user->fcm_token)) {
+            \Log::warning('User has no FCM token', ['user_id' => $user?->id]);
+            return false;
+        }
 
-        if ($user->fcm_token) {
-            app(FirebaseNotificationService::class)
-                ->send($user->fcm_token, $title, $body);
+        try {
+            $firebaseService = new FirebaseNotificationService();
+
+            $result = $firebaseService->send(
+                $user->fcm_token,
+                $title,
+                $body,
+                array_merge($data, ['type' => $type])
+            );
+
+            \Log::info('Firebase send result:', [
+                'user_id' => $user->id,
+                'type' => $type,
+                'result' => $result,
+            ]);
+
+            return $result;
+
+        } catch (\Throwable $e) {
+            \Log::error('Failed to send notification: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'type' => $type
+            ]);
+            return false;
         }
     }
 }

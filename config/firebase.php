@@ -50,8 +50,7 @@ return [
              *
              */
 
-            'credentials' => env('FIREBASE_CREDENTIALS', env('GOOGLE_APPLICATION_CREDENTIALS')),
-
+            'credentials' => ['file' => storage_path('app/firebase/firebase.json'),],
             /*
              * ------------------------------------------------------------------------
              * Firebase Auth Component

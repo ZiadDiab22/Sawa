@@ -2,16 +2,17 @@
 
 namespace App\Repositories\Admin;
 
+use App\Models\CancellationReason;
+use App\Models\CompanyCommission;
+use App\Models\DriverDocument;
+use App\Models\DriverProfile;
+use App\Models\DriverProfit;
 use App\Models\Ride;
 use App\Models\User;
-use App\Models\DriverProfit;
-use App\Models\DriverProfile;
-use App\Models\DriverDocument;
-use Illuminate\Support\Carbon;
-use App\Models\CompanyCommission;
-use App\Models\CancellationReason;
-use Illuminate\Support\Facades\DB;
+use App\Models\WalletTransaction;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 
 class AdminRepository
@@ -360,7 +361,7 @@ public function getVehicleMakesByType(string $type)
 
 
 
-public function approveDriver(int $driverId): bool
+public function approveDriver(int $driverId)
 {
     return DB::transaction(function () use ($driverId) {
 
@@ -398,7 +399,9 @@ public function approveDriver(int $driverId): bool
             'role_id' => $driverRoleId,
         ]);
 
-        return true;
+ return DB::table('driver_profiles')
+            ->where('id', $driverId)
+            ->first();
     });
 }
 
@@ -739,105 +742,203 @@ public function toggleBannedDriver(int $driverId): DriverProfile
     }
 
     public function rideStats(int $driverUserId): array
-    {
-        return [
-            'live_rides' => Ride::where('driver_id', $driverUserId)
-                ->whereIn('status', ['driver_on_way', 'on_going'])
-                ->count(),
+{
+    $stats = Ride::where('driver_id', $driverUserId)
+        ->selectRaw("
+            COUNT(*) as total_rides,
+            SUM(CASE WHEN status IN ('driver_on_way','on_going') THEN 1 ELSE 0 END) as live_rides,
+            SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_rides,
+            SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_rides
+        ")
+        ->first();
 
-            'completed_rides' => Ride::where('driver_id', $driverUserId)
-                ->where('status', 'completed')
-                ->count(),
+    return [
+        'live_rides' => (int) $stats->live_rides,
+        'completed_rides' => (int) $stats->completed_rides,
+        'cancelled_rides' => (int) $stats->cancelled_rides,
+        'total_rides' => (int) $stats->total_rides,
+    ];
+}
 
-            'cancelled_rides' => Ride::where('driver_id', $driverUserId)
-                ->where('status', 'cancelled')
-                ->count(),
-
-            'rejected_rides' => 0,
-
-            'total_rides' => Ride::where('driver_id', $driverUserId)->count(),
-        ];
-    }
-
-  public function earnings(int $driverUserId): array
+public function earnings(int $driverUserId): array
 {
     $today = Carbon::today();
 
-    $driverTotalEarnings = DriverProfit::where('user_id', $driverUserId)
-        ->sum('amount');
+    $driver = DriverProfit::where('user_id', $driverUserId)
+        ->selectRaw("
+            SUM(amount) as total,
+            SUM(CASE WHEN DATE(created_at) = ? THEN amount ELSE 0 END) as today_total
+        ", [$today])
+        ->first();
 
-    $driverTodayEarnings = DriverProfit::where('user_id', $driverUserId)
-        ->whereDate('created_at', $today)
-        ->sum('amount');
-
-    $adminTotalCommission = CompanyCommission::where('user_id', $driverUserId)
-        ->sum('amount');
-
-    $adminTodayCommission = CompanyCommission::where('user_id', $driverUserId)
-        ->whereDate('created_at', $today)
-        ->sum('amount');
+    $admin = CompanyCommission::where('user_id', $driverUserId)
+        ->selectRaw("
+            SUM(amount) as total,
+            SUM(CASE WHEN DATE(created_at) = ? THEN amount ELSE 0 END) as today_total
+        ", [$today])
+        ->first();
 
     return [
-        'admin_commission' => (float) $adminTotalCommission,
+        'admin_commission' => (float) $admin->total,
+        'driver_earnings' => (float) $driver->total,
+        'total_earnings' => (float) ($driver->total + $admin->total),
 
-        'driver_earnings' => (float) $driverTotalEarnings,
-
-        'total_earnings' => (float) ($driverTotalEarnings + $adminTotalCommission),
-
-        'today_admin_commission' => (float) $adminTodayCommission,
-        'today_driver_earnings' => (float) $driverTodayEarnings,
+        'today_admin_commission' => (float) $admin->today_total,
+        'today_driver_earnings' => (float) $driver->today_total,
 
         'by_cash' => 0,
         'by_card' => 0,
     ];
 }
+    public function getDriverRides(int $driverProfileId, ?string $status = null)
+{
+    $query = DB::table('driver_profiles as dp')
+        ->join('users as d', 'd.id', '=', 'dp.user_id')
+        ->join('rides as r', 'r.driver_id', '=', 'd.id')
+        ->join('users as u', 'u.id', '=', 'r.user_id')
+        ->join('ride_requests as rr', 'rr.id', '=', 'r.ride_request_id')
+        ->leftJoin('vehicle_types as vt', 'vt.id', '=', 'dp.vehicle_type_id')
+        ->leftJoin('vehicle_makes as vm', 'vm.id', '=', 'dp.vehicle_make_id')
+        ->where('dp.id', $driverProfileId);
 
-    public function getDriverRides(int $driverProfileId)
-    {
-        return DB::table('driver_profiles as dp')
-            ->join('users as d', 'd.id', '=', 'dp.user_id') // Driver
-            ->join('rides as r', 'r.driver_id', '=', 'd.id')
-            ->join('users as u', 'u.id', '=', 'r.user_id') // Rider
-            ->join('ride_requests as rr', 'rr.id', '=', 'r.ride_request_id')
-            ->leftJoin('vehicle_types as vt', 'vt.id', '=', 'dp.vehicle_type_id')
-            ->leftJoin('vehicle_makes as vm', 'vm.id', '=', 'dp.vehicle_make_id')
-            ->where('dp.id', $driverProfileId)
-            ->orderByDesc('r.created_at')
-            ->select([
-                'r.id as ride_id',
-                'r.code as reservation_code',
+    if ($status) {
 
-                // Driver
-                'd.id as driver_id',
-                'd.name as driver_name',
-                'd.profile_image as driver_avatar',
-
-                // Rider
-                'u.id as rider_id',
-                'u.name as rider_name',
-
-                // Service
-                'vt.name as service',
-
-                // Vehicle
-                'vt.name as vehicle_type',
-                'vm.name as vehicle_make',
-                'dp.vehicle_model',
-                'dp.vehicle_plate_number',
-
-                // Locations
-                'rr.pickup_lat',
-                'rr.pickup_lng',
-                'rr.drop_lat',
-                'rr.drop_lng',
-
-                // Ride info
-                'r.price',
-                DB::raw('DATE(r.created_at) as booking_date'),
-            ])
-
-            ->get();
+        if ($status === 'live') {
+            $query->whereIn('r.status', ['driver_on_way', 'on_going']);
+        } else {
+            $query->where('r.status', $status);
+        }
     }
+
+    return $query
+        ->orderByDesc('r.created_at')
+        ->select([
+            'r.id as ride_id',
+            'r.code as reservation_code',
+            'r.status',
+
+            // Driver
+            'd.id as driver_id',
+            'd.name as driver_name',
+            'd.profile_image as driver_avatar',
+
+            // Rider
+            'u.id as rider_id',
+            'u.name as rider_name',
+
+            // Service
+            'vt.name as service',
+
+            // Vehicle
+            'vt.name as vehicle_type',
+            'vm.name as vehicle_make',
+            'dp.vehicle_model',
+            'dp.vehicle_plate_number',
+
+            // Locations
+            'rr.pickup_lat',
+            'rr.pickup_lng',
+            'rr.drop_lat',
+            'rr.drop_lng',
+
+            // Ride info
+            'r.price',
+            DB::raw('DATE(r.created_at) as booking_date'),
+        ])
+        ->paginate(10);
+}
+
+public function getRiderRides(int $riderId, ?string $status = null)
+{
+    $query = DB::table('users as u')
+        ->join('rides as r', 'r.user_id', '=', 'u.id')
+        ->join('users as d', 'd.id', '=', 'r.driver_id')
+        ->join('driver_profiles as dp', 'dp.user_id', '=', 'd.id')
+        ->join('ride_requests as rr', 'rr.id', '=', 'r.ride_request_id')
+        ->leftJoin('vehicle_types as vt', 'vt.id', '=', 'dp.vehicle_type_id')
+        ->leftJoin('vehicle_makes as vm', 'vm.id', '=', 'dp.vehicle_make_id')
+        ->where('u.id', $riderId);
+
+    if ($status) {
+
+        if ($status === 'live') {
+            $query->whereIn('r.status', ['driver_on_way', 'on_going']);
+        } else {
+            $query->where('r.status', $status);
+        }
+    }
+
+    return $query
+        ->orderByDesc('r.created_at')
+        ->select([
+            'r.id as ride_id',
+            'r.code as reservation_code',
+            'r.status',
+
+            // Driver
+            'd.id as driver_id',
+            'd.name as driver_name',
+            'd.profile_image as driver_avatar',
+
+            // Rider
+            'u.id as rider_id',
+            'u.name as rider_name',
+
+            // Service
+            'vt.name as service',
+
+            // Vehicle
+            'vt.name as vehicle_type',
+            'vm.name as vehicle_make',
+            'dp.vehicle_model',
+            'dp.vehicle_plate_number',
+
+            // Locations
+            'rr.pickup_lat',
+            'rr.pickup_lng',
+            'rr.drop_lat',
+            'rr.drop_lng',
+
+            // Ride info
+            'r.price',
+            DB::raw('DATE(r.created_at) as booking_date'),
+        ])
+        ->paginate(10);
+}
+
+//financial
+
+    public function getDriverWallet(int $driverId): float
+    {
+    return (float) DriverProfile::query()
+        ->where('user_id', $driverId)
+        ->value('wallet');
+    }
+
+    public function getTransactions(int $driverId, int $perPage = 10): LengthAwarePaginator
+    {
+        return WalletTransaction::query()
+            ->with('ride')
+            ->where('user_id', $driverId)
+            ->latest()
+            ->paginate($perPage);
+    }
+
+    public function getTotals(int $driverId): array
+    {
+        return [
+            'total_credit' => WalletTransaction::where('user_id', $driverId)
+                ->where('type', 'credit')
+                ->sum('amount'),
+
+            'total_debit' => WalletTransaction::where('user_id', $driverId)
+                ->where('type', 'debit')
+                ->sum('amount'),
+        ];
+    }
+
+
+
 
     //Rider Managment
    public function getRiders(int $perPage = 100)

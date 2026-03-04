@@ -251,14 +251,16 @@ public function getVehicleMakesByType(string $type)
     }
 
 
-    public function approveDriver(int $driverId): void
+    public function approveDriver(int $driverId)
 {
-    $approved = $this->AdminRepository->approveDriver($driverId);
+     $driver = $this->AdminRepository->approveDriver($driverId);
 
-    if (!$approved) {
+    if (!$driver) {
         throw new \Exception('Driver not found or already approved');
     }
-}
+
+    return $driver;
+    }
 
 
 public function suspendDriver(int $driverId): void
@@ -490,7 +492,7 @@ public function toggleBannedDriver(int $driverId)
 
             'verification_status' => [
                 'document_verification' => $documentApproved,
-                'vehicle_document_verifi    cation' => $vehicleDocApproved,
+                'vehicle_document_verification' => $vehicleDocApproved,
                 'is_driver_active' => $driver->is_status === 'active',
             ],
 
@@ -504,18 +506,21 @@ public function toggleBannedDriver(int $driverId)
         ];
     }
 
+public function driverRides(int $driverProfileId, ?string $status = null): array
+{
+    $rides = $this->AdminRepository->getDriverRides($driverProfileId, $status);
 
-    public function driverRides(int $driverProfileId): array
-    {
-        $rides = $this->AdminRepository->getDriverRides($driverProfileId);
+    return [
+        'data' => collect($rides->items())->map(function ($ride) {
 
-        return $rides->map(function ($ride) {
             return [
                 'reservation_code' => $ride->reservation_code,
 
                 'driver' => [
                     'name' => $ride->driver_name,
-                    'avatar' => $ride->driver_avatar,
+                    'avatar' => $ride->driver_avatar
+                        ? asset('storage/' . $ride->driver_avatar)
+                        : null,
                 ],
 
                 'rider' => [
@@ -532,28 +537,129 @@ public function toggleBannedDriver(int $driverId)
                 ],
 
                 'pickup_location' => [
-                    'lat' => $ride->pickup_lat,
-                    'lng' => $ride->pickup_lng,
+                    'lat' => (float) $ride->pickup_lat,
+                    'lng' => (float) $ride->pickup_lng,
                 ],
 
                 'destination' => [
-                    'lat' => $ride->drop_lat,
-                    'lng' => $ride->drop_lng,
+                    'lat' => (float) $ride->drop_lat,
+                    'lng' => (float) $ride->drop_lng,
                 ],
 
-                'ride_fare' => number_format($ride->price, 2) . ' USD',
+                'ride_fare' => number_format((float) $ride->price, 2) . ' USD',
 
                 'booking_date' => $ride->booking_date,
 
-                'status' => ucfirst($ride->status),
+                'status' => ucfirst(str_replace('_', ' ', $ride->status)),
 
-                // ثابتة حالياً
+                'payment' => [
+                    'method' => 'cash', // حالياً ثابتة
+                ],
+            ];
+        }),
+
+        'pagination' => [
+            'current_page' => $rides->currentPage(),
+            'last_page' => $rides->lastPage(),
+            'per_page' => $rides->perPage(),
+            'total' => $rides->total(),
+        ],
+    ];
+}
+
+public function riderRides(int $riderId, ?string $status = null): array
+{
+    $rides = $this->AdminRepository->getRiderRides($riderId, $status);
+
+    return [
+        'data' => collect($rides->items())->map(function ($ride) {
+
+            return [
+                'reservation_code' => $ride->reservation_code,
+
+                'driver' => [
+                    'name' => $ride->driver_name,
+                    'avatar' => $ride->driver_avatar
+                        ? asset('storage/' . $ride->driver_avatar)
+                        : null,
+                ],
+
+                'rider' => [
+                    'name' => $ride->rider_name,
+                ],
+
+                'service' => $ride->service ?? 'Taxi',
+
+                'vehicle' => [
+                    'type'   => $ride->vehicle_type,
+                    'make'   => $ride->vehicle_make,
+                    'model'  => $ride->vehicle_model,
+                    'number' => $ride->vehicle_plate_number,
+                ],
+
+                'pickup_location' => [
+                    'lat' => (float) $ride->pickup_lat,
+                    'lng' => (float) $ride->pickup_lng,
+                ],
+
+                'destination' => [
+                    'lat' => (float) $ride->drop_lat,
+                    'lng' => (float) $ride->drop_lng,
+                ],
+
+                'ride_fare' => number_format((float) $ride->price, 2) . ' USD',
+
+                'booking_date' => $ride->booking_date,
+
+                'status' => ucfirst(str_replace('_', ' ', $ride->status)),
+
                 'payment' => [
                     'method' => 'cash',
                 ],
             ];
-        })->toArray();
-    }
+        }),
+
+        'pagination' => [
+            'current_page' => $rides->currentPage(),
+            'last_page' => $rides->lastPage(),
+            'per_page' => $rides->perPage(),
+            'total' => $rides->total(),
+        ],
+    ];
+}
+    //infinacial
+
+    public function getWalletDashboard(int $driverId, int $perPage = 10): array
+{
+    $walletBalance = $this->AdminRepository->getDriverWallet($driverId);
+
+    $totals = $this->AdminRepository->getTotals($driverId);
+
+    $transactions = $this->AdminRepository->getTransactions($driverId, $perPage);
+
+    $transactions->getCollection()->transform(function ($t) {
+    return [
+        'id' => $t->id,
+        'booking_id' => $t->ride?->code ?? $t->ride_id,
+        'credit' => $t->type === 'credit' ? (float) $t->amount : 0,
+        'debit'  => $t->type === 'debit' ? (float) $t->amount : 0,
+        'type' => ucfirst($t->type),
+        'description' => match ($t->reason) {
+            'ride_commission' => 'Ride commission',
+            'wallet_charge' => 'Wallet charge',
+            'cancellation_penalty' => 'Cancellation penalty',
+            'manual_adjustment' => 'Manual adjustment',
+        },
+        'date' => $t->created_at->format('d M Y - h:i A'),
+    ];
+});
+    return [
+        'wallet_balance' => (float) $walletBalance,
+        'total_credit' => (float) $totals['total_credit'],
+        'total_debit' => (float) $totals['total_debit'],
+        'transactions' => $transactions,
+    ];
+}
 
     //Rider Managment
 

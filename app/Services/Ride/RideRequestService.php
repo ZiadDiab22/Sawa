@@ -32,6 +32,7 @@ class RideRequestService
       $this->rideRequests->updateStatus($rideRequest, 'cancelled');
 
       return $rideRequest->refresh();
+
     });
   }
 }

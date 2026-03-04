@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Ride;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Ride\CalculateRideRequest;
 use App\Repositories\Ride\RideRequestRepository;
+use App\Services\NotificationService;
 use App\Services\Ride\DistanceService;
 use App\Services\Ride\RideBroadcastService;
 use App\Services\Ride\RideRequestService;
@@ -30,25 +31,33 @@ class RideRequestController extends Controller
             'duration_minutes' => $estimate['duration'],
         ]);
 
-        try {
-        $user = $rideRequest->user;
-        if ($user && $user->fcm_token) { // تأكد أن المستخدم لديه FCM token
-            $title = "طلبك تم تسجيله";
-            $body  = "تم استلام طلبك بنجاح وسيتم التواصل معك حال وجود سائق متاح.";
 
-            $firebaseService = new \App\Services\FirebaseNotificationService();
-            $firebaseService->send($user->fcm_token, $title, $body);
-        }
-    } catch (\Exception $e) {
-        \Log::error("Failed to send ride creation notification: ".$e->getMessage());
-    }
+        $user = $rideRequest->user;
+
+    $Notification= NotificationService::sendToUser(
+    $user,
+    'ride_created', // نوع الإشعار
+    'طلبك تم تسجيله', // عنوان الإشعار
+    'تم استلام طلبك بنجاح وسيتم التواصل معك حال وجود سائق متاح.', // نص الإشعار
+    ['ride_request_id' => (string) $rideRequest->id] // بيانات إضافية
+);
+
         $broadcastService->sendToNearbyDrivers($rideRequest);
 
         return response()->json([
-            'status' => true,
-            'data' => $rideRequest,
-        ], 201);
+        'status' => true,
+        'data' => $rideRequest,
+        'notification' => [
+            'type' => 'ride_created',
+            'title' => 'طلبك تم تسجيله',
+            'body'  => 'تم استلام طلبك بنجاح وسيتم التواصل معك حال وجود سائق متاح.',
+            'firebase_result' => $Notification
+        ]
+    ], 201);
     }
+    //    //
+
+
 
     public function skip(Request $request, DistanceService $service)
     {
@@ -78,10 +87,11 @@ class RideRequestController extends Controller
             Auth::id()
         );
 
+        $response['ride']->makeHidden('code');
         return response()->json([
-            'status' => true,
-            'data' => $response->makeHidden('code'),
-        ], 201);
+        'status' => true,
+        'data' => $response
+], 201);
     }
 
 
@@ -96,6 +106,8 @@ class RideRequestController extends Controller
             'data' => $rideRequest,
         ]);
     }
+
+
     public function history(Request $request, DistanceService $service)
 {
     try {

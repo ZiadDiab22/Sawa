@@ -9,6 +9,7 @@ use App\Http\Requests\Ride\RideRequestDetailsRequest;
 use App\Http\Resources\Ride\RideDetailsResource;
 use App\Http\Resources\Ride\RideInfoResource;
 use App\Services\Ride\RideInfoService;
+use Illuminate\Http\Request;
 
 class RideInfoController extends Controller
 {
@@ -39,4 +40,20 @@ class RideInfoController extends Controller
             'data'   => $this->service->getRideRequestDetails($request->ride_request_id),
         ]);
     }
+
+
+public function deleteRides(Request $request)
+{
+    $request->validate([
+        'ids'   => 'required|array|min:1',
+        'ids.*' => 'integer|exists:rides,id',
+    ]);
+
+    $deletedCount = $this->service->deleteRides($request->ids);
+
+    return response()->json([
+        'status' => true,
+        'deleted_count' => $deletedCount,
+    ]);
+}
 }

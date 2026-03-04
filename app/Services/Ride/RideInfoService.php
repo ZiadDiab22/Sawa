@@ -27,4 +27,8 @@ class RideInfoService
     {
         return $this->repository->findRequestWithDetails($id);
     }
+    public function deleteRides(array $ids): int
+{
+    return $this->repository->deleteByIds($ids);
+}
 }

@@ -92,5 +92,10 @@ class RideInfoRepository
 
         return $data;
     }
-
+public function deleteByIds(array $ids): int
+{
+    return DB::table('rides')
+        ->whereIn('id', $ids)
+        ->delete();
+}
 }

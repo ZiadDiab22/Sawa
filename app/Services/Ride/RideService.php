@@ -166,7 +166,7 @@ class RideService
 
             return $ride->refresh();
         });
-    }
+    }   
 
     public function driverCancel(int $id, int $driverId)
     {

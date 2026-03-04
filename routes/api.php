@@ -126,10 +126,12 @@ Route::prefix('admin')->group(function () {
         Route::get('/drivers/approved', [DriverApprovalController::class, 'approvedDrivers']);
         Route::get('/rides', [RideInfoController::class, 'index']);
         Route::get('/rides/{ride_id}', [RideInfoController::class, 'show']);
+        Route::delete('/deleteRides',[RideInfoController::class, 'deleteRides']);
         Route::get('/driver/stats/{id}', [DriverProfitController::class, 'show'])->middleware(['check_admin']);
         Route::get('/company-stats', [CompanyProfitController::class, 'show'])->middleware(['check_admin']);
         Route::get('/driver-locations', [DriverLocationController::class, 'index'])->middleware(['check_admin']);
     });
+
 });
 
 
@@ -187,6 +189,14 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::patch('/{id}/toggleBannedDriver', [AdminController::class, 'toggleBannedDriver']);
         Route::get('/showDriver/{driverProfileId}', [AdminController::class, 'showDriver']);
         Route::get( '/driverRides/{driverProfileId}',[AdminController::class, 'driverRides']);
+        Route::get( '/riderRides/{RideridId}',[AdminController::class, 'riderRides']);
+
+//financial
+        Route::get('/getWalletDashboard',[AdminController::class, 'getWalletDashboard']);
+
+
+
+
         //Rider Managment
         Route::get('/Showriders', [AdminController::class, 'riders']);
         Route::get('/Searchriders', [AdminController::class, 'Searchriders']);
@@ -224,16 +234,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     Route::middleware('auth:sanctum')->post('/save-fcm-token', [NotificationController::class, 'saveToken']);
-    
-Route::get('/test-notification', function () {
-    $user = \App\Models\User::first();
 
-    if ($user && $user->fcm_token) {
-        app(\App\Services\FirebaseNotificationService::class)
-            ->send($user->fcm_token, "طلب جديد 🚕", "عندك طلب تاكسي جديد");
+// Route::get('/test-notification', function () {
+//     $user = \App\Models\User::first();
 
-        return "Notification Sent";
-    }
+//     if ($user && $user->fcm_token) {
+//         app(\App\Services\FirebaseNotificationService::class)
+//             ->send($user->fcm_token, "طلب جديد 🚕", "عندك طلب تاكسي جديد");
 
-    return "No Token Found";
-});
+//         return "Notification Sent";
+//     }
+
+//     return "No Token Found";
+// });

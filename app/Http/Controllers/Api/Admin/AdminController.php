@@ -6,8 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Profile\UpdateProfileRequest;
 use App\Services\Admin\AdminService;
 use App\Services\Auth\AuthService;
+use App\Services\NotificationService;
+use Dotenv\Exception\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -339,10 +343,26 @@ public function index()
     public function approveDriver($id)
 {
     try {
-        $this->adminService->approveDriver((int) $id);
+        $driver = $this->adminService->approveDriver((int) $id);
 
-        return response()->json([
-            'message' => 'Driver approved successfully'
+$user = DB::table('users')->where('id', $driver->user_id)->first();
+
+$notification = NotificationService::sendToUser(
+    $user,
+    'driver_approved',
+    'تم قبول حسابك',
+    'يمكنك الآن استقبال الرحلات.',
+    [
+        'driver_id' => (string) $driver->id
+    ]
+);
+   return response()->json([
+            'message' => 'Driver approved successfully',
+            'notification' => [
+                'type' => 'driver_approved',
+                'driver_id' => $driver->id,
+                'firebase_result' => $notification
+            ]
         ]);
     } catch (\Exception $e) {
         return response()->json([
@@ -475,13 +495,46 @@ public function toggleBannedDriver(int $id)
         ]);
     }
 
-     public function driverRides(int $driverProfileId, AdminService $service)
+     public function driverRides(Request $request, int $driverProfileId)
+{
+    $status = $request->query('status');
+
+    $rides = $this->adminService->driverRides($driverProfileId, $status);
+
+    return response()->json($rides);
+}
+
+public function riderRides(Request $request, int $riderId)
+{
+    $status = $request->query('status');
+
+    $rides = $this->adminService->riderRides($riderId, $status);
+
+    return response()->json($rides);
+}
+
+//financial
+public function getWalletDashboard(Request $request)
     {
+        $request->validate([
+            'driver_id' => ['required', 'exists:driver_profiles,user_id'],
+            'per_page'  => ['nullable', 'integer', 'min:1']
+        ]);
+
+        $driverId = (int) $request->driver_id;
+        $perPage = $request->get('per_page', 10);
+
+        $data = $this->adminService->getWalletDashboard($driverId, $perPage);
+
         return response()->json([
             'status' => true,
-            'data'   => $service->driverRides($driverProfileId),
+            'message' => 'Driver wallet dashboard retrieved successfully',
+            'data' => $data
         ]);
     }
+
+
+
 
     //Rider Managment
 
