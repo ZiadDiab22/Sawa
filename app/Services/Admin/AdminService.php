@@ -2,13 +2,15 @@
 
 namespace App\Services\Admin;
 
-use Exception;
-use Carbon\Carbon;
 use App\Models\DriverDocument;
-use Illuminate\Support\Facades\DB;
-use App\Repositories\UserRepository;
-use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 use App\Repositories\Admin\AdminRepository;
+use App\Repositories\UserRepository;
+use App\Services\NotificationService;
+use Carbon\Carbon;
+use Exception;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class AdminService
 {
@@ -224,7 +226,7 @@ public function getVehicleMakesByType(string $type)
         return $drivers->through(function ($driver) {
             return [
                 'id' => $driver->id,
-                 'document_ids' => $driver->documents
+                'document_ids' => $driver->documents
                 ->pluck('id')
                 ->values(),
                 'driver' => [
@@ -250,26 +252,92 @@ public function getVehicleMakesByType(string $type)
         });
     }
 
-
-    public function approveDriver(int $driverId)
+    public function getDriverVehicleInfo(int $driverId)
 {
-     $driver = $this->AdminRepository->approveDriver($driverId);
+    $driver = $this->AdminRepository->getDriverVehicleInfo($driverId);
+
+    if (!$driver) {
+        throw new \Exception('Driver not found');
+    }
+
+    return $driver;
+}
+public function approveDriver(int $driverId)
+{
+    $driver = $this->AdminRepository->approveDriver($driverId);
 
     if (!$driver) {
         throw new \Exception('Driver not found or already approved');
     }
 
-    return $driver;
+    $user = User::find($driver->user_id);
+
+    if (!$user) {
+        throw new \Exception('User not found');
     }
 
+    $type  = 'driver_approved';
+    $title = 'تم قبول حسابك';
+    $body  = 'يمكنك الآن استقبال الرحلات.';
 
-public function suspendDriver(int $driverId): void
+    $firebaseResult = NotificationService::sendToUser(
+        $user,
+        $type,
+        $title,
+        $body,
+        [
+            'driver_id' => (string) $driver->id
+        ]
+    );
+
+    return [
+        'driver' => $driver,
+        'notification' => [
+            'type' => $type,
+            'title' => $title,
+            'body' => $body,
+            'firebase_result' => $firebaseResult
+        ]
+    ];
+}
+
+public function suspendDriver(int $driverId)
 {
-    $suspended = $this->AdminRepository->suspendDriver($driverId);
+    $driver = $this->AdminRepository->suspendDriver($driverId);
 
-    if (!$suspended) {
+    if (!$driver) {
         throw new \Exception('Driver not found or already suspended');
     }
+
+    $user = User::find($driver->user_id);
+
+    if (!$user) {
+        throw new \Exception('User not found');
+    }
+
+    $type  = 'driver_suspended';
+    $title = 'تم إيقاف حسابك';
+    $body  = 'تم تعليق حسابك مؤقتاً، يرجى التواصل مع الإدارة.';
+
+    $firebaseResult = NotificationService::sendToUser(
+        $user,
+        $type,
+        $title,
+        $body,
+        [
+            'driver_id' => (string) $driver->id
+        ]
+    );
+
+    return [
+        'driver' => $driver,
+        'notification' => [
+            'type' => $type,
+            'title' => $title,
+            'body' => $body,
+            'firebase_result' => $firebaseResult
+        ]
+    ];
 }
 
 public function listActiveDrivers()
@@ -362,17 +430,52 @@ public function listPendingDrivers()
         ];
     });
 }
+public function toggleReceivingRequests(int $driverId, bool $status)
+{
+    $driver = $this->AdminRepository->updateCanReceiveRequests(
+        $driverId,
+        $status
+    );
 
-    public function toggleReceivingRequests(int $driverId, bool $status)
-    {
-        // شرط أمان منطقي
-        $driver = $this->AdminRepository->updateCanReceiveRequests(
-            $driverId,
-            $status
-        );
+    $user = User::find($driver->user_id);
 
-        return $driver;
+    if (!$user) {
+        throw new \Exception('User not found');
     }
+
+    $type = $status
+        ? 'driver_receiving_enabled'
+        : 'driver_receiving_disabled';
+
+    $title = $status
+        ? 'تم تفعيل استقبال الرحلات'
+        : 'تم إيقاف استقبال الرحلات';
+
+    $body = $status
+        ? 'يمكنك الآن استقبال طلبات جديدة من الركاب.'
+        : 'لن تصلك طلبات جديدة حتى إعادة التفعيل.';
+
+    $firebaseResult = NotificationService::sendToUser(
+        $user,
+        $type,
+        $title,
+        $body,
+        [
+            'driver_id' => (string) $driver->id,
+            'can_receive_requests' => $status ? '1' : '0',
+        ]
+    );
+
+    return [
+        'driver' => $driver,
+        'notification' => [
+            'type' => $type,
+            'title' => $title,
+            'body' => $body,
+            'firebase_result' => $firebaseResult,
+        ],
+    ];
+}
 
     public function searchDrivers(string $search)
 {
@@ -451,10 +554,50 @@ private function formatDocumentResponse(DriverDocument $doc): array
 
 public function toggleBannedDriver(int $driverId)
 {
-    return $this->AdminRepository->toggleBannedDriver($driverId);
+    $driver = $this->AdminRepository->toggleBannedDriver($driverId);
+
+    $user = User::find($driver->user_id);
+
+    if (!$user) {
+        throw new \Exception('User not found');
+    }
+
+    // تحديد نوع العملية
+    $isBanned = $driver->is_status === 'banned';
+
+    $type = $isBanned
+        ? 'driver_banned'
+        : 'driver_unbanned';
+
+    $title = $isBanned
+        ? 'تم حظر حسابك'
+        : 'تم فك الحظر عن حسابك';
+
+    $body = $isBanned
+        ? 'تم حظر حسابك من قبل الإدارة، لن تتمكن من استخدام التطبيق حالياً.'
+        : 'تم إعادة تفعيل حسابك، يمكنك الآن استخدام التطبيق.';
+
+    $firebaseResult = NotificationService::sendToUser(
+        $user,
+        $type,
+        $title,
+        $body,
+        [
+            'driver_id' => (string) $driver->id,
+            'is_status' => $driver->is_status,
+        ]
+    );
+
+    return [
+        'driver' => $driver,
+        'notification' => [
+            'type' => $type,
+            'title' => $title,
+            'body' => $body,
+            'firebase_result' => $firebaseResult,
+        ],
+    ];
 }
-
-
     public function driverDetails(int $driverProfileId): array
     {
         $driver = $this->AdminRepository->getDriverProfile($driverProfileId);
@@ -476,6 +619,7 @@ public function toggleBannedDriver(int $driverId)
         return [
             'driver' => [
                 'id' => $driver->id,
+                'user_id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
@@ -654,6 +798,7 @@ public function riderRides(int $riderId, ?string $status = null): array
     ];
 });
     return [
+        'user_id' => $driverId,
         'wallet_balance' => (float) $walletBalance,
         'total_credit' => (float) $totals['total_credit'],
         'total_debit' => (float) $totals['total_debit'],
@@ -683,7 +828,7 @@ public function riderRides(int $riderId, ?string $status = null): array
                     'time' => Carbon::parse($user->created_at)->format('h:i A'),
                     ],
 
-
+                    'blocked' => (bool) $user->blocked,
                     'status' => $user->blocked ? 'inactive' : 'active',
                 ];
             }),
@@ -733,7 +878,7 @@ public function searchRiders(string $search)
                     'date' => Carbon::parse($user->created_at)->format('d M Y'),
                     'time' => Carbon::parse($user->created_at)->format('h:i A'),
                 ],
-
+                'blocked' => false,
                 'status' => 'active',
             ];
         }),
@@ -767,7 +912,7 @@ public function InactiveRidersList(int $perPage = 100): array
                     'date' => Carbon::parse($user->created_at)->format('d M Y'),
                     'time' => Carbon::parse($user->created_at)->format('h:i A'),
                 ],
-
+                'blocked' => true,
                 'status' => 'inactive',
             ];
         }),
@@ -793,7 +938,7 @@ public function getRiderProfile(int $riderId): array
             'profile_image' => $rider->profile_image
                 ? asset('storage/' . $rider->profile_image)
                 : null,
-
+            'blocked' => (bool) $rider->blocked,
             'personal_information' => [
                 'email' => $rider->email,
                 'phone' => $rider->phone,

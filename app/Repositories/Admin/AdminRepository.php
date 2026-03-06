@@ -357,9 +357,64 @@ public function getVehicleMakesByType(string $type)
                 'documents_status'
             )
             ->paginate(10);
+            $drivers->getCollection()->transform(function ($driver) {
+
+        if ($driver->user && $driver->user->profile_image) {
+            $driver->user->profile_image = asset('storage/' . $driver->user->profile_image);
+        }
+
+        return $driver;
+    });
+
+    return $drivers;
     }
 
+public function getDriverVehicleInfo(int $driverId)
+{
+    $driver = DB::table('driver_profiles as dp')
+        ->leftJoin('vehicle_types as vt', 'vt.id', '=', 'dp.vehicle_type_id')
+        ->leftJoin('vehicle_makes as vm', 'vm.id', '=', 'dp.vehicle_make_id')
+        ->select([
+            'dp.id as driver_id',
+            'vt.name as vehicle_type',
+            'vm.name as vehicle_make',
+            'dp.vehicle_model',
+            'dp.vehicle_year',
+            'dp.vehicle_color',
+            'dp.vehicle_plate_number',
+            'dp.vehicle_document',
+            'dp.license_document',
+            'dp.insurance_document',
+            'dp.vehicle_images',
+        ])
+        ->where('dp.id', $driverId)
+        ->first();
 
+    if (!$driver) {
+        return null;
+    }
+
+    // اصلاح روابط الصور
+    $driver->vehicle_document = $driver->vehicle_document
+        ? asset('storage/'.$driver->vehicle_document)
+        : null;
+
+    $driver->license_document = $driver->license_document
+        ? asset('storage/'.$driver->license_document)
+        : null;
+
+    $driver->insurance_document = $driver->insurance_document
+        ? asset('storage/'.$driver->insurance_document)
+        : null;
+
+    $images = json_decode($driver->vehicle_images, true) ?? [];
+
+    $driver->vehicle_images = array_map(function ($img) {
+        return asset('storage/'.$img);
+    }, $images);
+
+    return $driver;
+}
 
 public function approveDriver(int $driverId)
 {
@@ -367,11 +422,15 @@ public function approveDriver(int $driverId)
 
         $driver = DB::table('driver_profiles')
             ->where('id', $driverId)
-            ->where('status', 'pending')
+            ->lockForUpdate()
             ->first();
 
         if (!$driver) {
-            return false;
+            return null;
+        }
+
+        if (!in_array($driver->status, ['pending', 'suspended'])) {
+            return null;
         }
 
         DB::table('driver_profiles')
@@ -380,6 +439,7 @@ public function approveDriver(int $driverId)
                 'status' => 'approved',
                 'is_status' => 'active',
                 'can_receive_requests' => true,
+                'updated_at' => now(),
             ]);
 
         $driverRoleId = DB::table('roles')
@@ -399,33 +459,75 @@ public function approveDriver(int $driverId)
             'role_id' => $driverRoleId,
         ]);
 
- return DB::table('driver_profiles')
+        $driver = DB::table('driver_profiles')
             ->where('id', $driverId)
             ->first();
+
+        // تحويل روابط الصور
+        $driver->vehicle_document = $driver->vehicle_document
+            ? asset('storage/' . $driver->vehicle_document)
+            : null;
+
+        $driver->license_document = $driver->license_document
+            ? asset('storage/' . $driver->license_document)
+            : null;
+
+        $driver->insurance_document = $driver->insurance_document
+            ? asset('storage/' . $driver->insurance_document)
+            : null;
+
+        $images = json_decode($driver->vehicle_images, true);
+
+        if ($images) {
+            $driver->vehicle_images = collect($images)
+                ->map(fn($img) => asset('storage/' . $img))
+                ->values();
+        }
+
+        return $driver;
+    });
+}
+public function suspendDriver(int $driverId)
+{
+    return DB::transaction(function () use ($driverId) {
+
+        $driver = DB::table('driver_profiles')
+            ->where('id', $driverId)
+            ->whereIn('status', ['pending', 'approved'])
+            ->lockForUpdate()
+            ->first();
+
+        if (!$driver) {
+            return null;
+        }
+
+        DB::table('driver_profiles')
+            ->where('id', $driverId)
+            ->update([
+                'status' => 'suspended',
+                'updated_at' => now(),
+            ]);
+
+        $driver = DB::table('driver_profiles')
+            ->where('id', $driverId)
+            ->first();
+
+        // تحويل روابط الصور إلى URL كامل
+        $driver->vehicle_document = asset('storage/' . $driver->vehicle_document);
+        $driver->license_document = asset('storage/' . $driver->license_document);
+        $driver->insurance_document = asset('storage/' . $driver->insurance_document);
+
+        // معالجة صور السيارة
+        $vehicleImages = json_decode($driver->vehicle_images, true) ?? [];
+
+        $driver->vehicle_images = array_map(function ($image) {
+            return asset('storage/' . $image);
+        }, $vehicleImages);
+
+        return $driver;
     });
 }
 
-
-public function suspendDriver(int $driverId): bool
-{
-    $driver = DB::table('driver_profiles')
-        ->where('id', $driverId)
-        ->whereIn('status', ['pending', 'approved'])
-        ->first();
-
-    if (!$driver) {
-        return false;
-    }
-
-    DB::table('driver_profiles')
-        ->where('id', $driverId)
-        ->update([
-            'status' => 'suspended',
-            'updated_at' => now(),
-        ]);
-
-    return true;
-}
 public function getActiveDriversList()
 {
     return DriverProfile::query()
@@ -654,16 +756,17 @@ public function getPendingDrivers()
         ->paginate(10);
 }
 
-    public function updateCanReceiveRequests(int $driverId, bool $status): DriverProfile
-    {
-        $driver = DriverProfile::findOrFail($driverId);
+ public function updateCanReceiveRequests(int $driverId, bool $status): DriverProfile
+{
+    $driver = DriverProfile::findOrFail($driverId);
 
-        $driver->update([
-            'can_receive_requests' => $status,
-        ]);
+    $driver->update([
+        'can_receive_requests' => $status,
+        'updated_at' => now(),
+    ]);
 
-        return $driver;
-    }
+    return $driver->fresh();
+}
 
     public function searchDrivers(string $search)
 {
@@ -717,21 +820,25 @@ public function toggleBannedDriver(int $driverId): DriverProfile
     $driver = DriverProfile::findOrFail($driverId);
 
     if ($driver->is_status === 'banned') {
+
         // فك الحظر
         $driver->update([
             'is_status' => 'inactive',
+            'updated_at' => now(),
         ]);
+
     } else {
+
         // حظر
         $driver->update([
             'is_status' => 'banned',
             'can_receive_requests' => false,
+            'updated_at' => now(),
         ]);
     }
 
-    return $driver;
+    return $driver->fresh();
 }
-
     public function getDriverProfile(int $driverProfileId): DriverProfile
     {
         return DriverProfile::with([

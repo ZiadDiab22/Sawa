@@ -92,6 +92,15 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::get('/profile/showVehicle',[DriverProfileController::class, 'showVehicle']);
     Route::get('/profile/status',[DriverProfileController::class, 'status']);
 
+    Route::post('/documents/store',[DriverDocumentController::class,'store']);
+    Route::post('/documents/update/{id}',[DriverDocumentController::class,'update']);
+    Route::get('/documents/show',[DriverDocumentController::class,'show']);
+    Route::delete('/documents/deleteFile/{id}',[DriverDocumentController::class, 'deleteFile']);
+    Route::post('/documents/updateFile/{id}',[DriverDocumentController::class, 'updateFile']);
+    Route::get('/documents/showGrouped',[DriverDocumentController::class,'showGrouped']);
+
+
+
 });
 
 Route::middleware(['auth:sanctum'])->prefix('account')->group(function () {
@@ -117,9 +126,7 @@ Route::prefix('admin')->group(function () {
         //drivers
         Route::put('/driver/accept/{id}', [DriverController::class, 'accept']);
         Route::post('/driver/{id}/wallet/add', [DriverWalletController::class, 'add']);
-    });
-
-    Route::middleware(['auth:sanctum'])->group(function () {
+    // Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/drivers/pending', [DriverApprovalController::class, 'pendingDrivers']);
         Route::get('/drivers/{id}', [DriverApprovalController::class, 'show']);
         Route::post('/drivers/{id}/approve', [DriverApprovalController::class, 'approve']);
@@ -131,18 +138,14 @@ Route::prefix('admin')->group(function () {
         Route::get('/driver/stats/{id}', [DriverProfitController::class, 'show'])->middleware(['check_admin']);
         Route::get('/company-stats', [CompanyProfitController::class, 'show'])->middleware(['check_admin']);
         Route::get('/driver-locations', [DriverLocationController::class, 'index'])->middleware(['check_admin']);
-    });
-
-});
-
+    // });
 
 //rider and driver
-Route::middleware(['auth:sanctum'])->group(function () {
+// Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('show', [AboutUsController::class, 'show']);
-});
+// });
 
 //Admin
-Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::post('updateAboutUs', [AboutUsController::class, 'update']);
         Route::post('storeAboutUs', [AboutUsController::class, 'store']);
         //test
@@ -193,8 +196,9 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::get( '/riderRides/{RideridId}',[AdminController::class, 'riderRides']);
 
 //financial
-        Route::get('/getWalletDashboard',[AdminController::class, 'getWalletDashboard']);
-
+        Route::get('/getWalletDashboard/{driverId}',[AdminController::class, 'getWalletDashboard']);
+//vehicle
+        Route::get('/vehicle/{id}', [AdminController::class,'getDriverVehicleInfo']);
 
 
 
@@ -202,7 +206,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
         Route::get('/Showriders', [AdminController::class, 'riders']);
         Route::get('/Searchriders', [AdminController::class, 'Searchriders']);
         Route::delete('/deleteRider', [AdminController::class, 'deleteRider']);
-        Route::patch('/toggleRiderBlock/{id}', [AdminController::class, 'toggleRiderBlock']);
+        Route::patch('/toggleRiderBlock/{id}', [AdminController::class, 'toggleRiderBlock'])->middleware(['check_admin']);;
         Route::get('/activeRiders', [AdminController::class, 'activeRiders']);
         Route::get('/inactiveRiders', [AdminController::class, 'inactiveRiders']);
         Route::get('/showRiderProfile/{id}', [AdminController::class, 'showRiderProfile']);
@@ -211,28 +215,19 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
 
 
 
-});
+
 
 //  documents
-
-Route::middleware('auth:sanctum')->group(function () {
     // Route::post('/driver/documents', [DriverDocumentController::class, 'store']);
     // Route::post('/driver/documents/{id}', [DriverDocumentController::class, 'update']);
     // Route::get('/driver/documents', [DriverDocumentController::class, 'show']);
-    Route::post('/driver/documents/store',[DriverDocumentController::class,'store']);
-    Route::post('/driver/documents/update/{id}',[DriverDocumentController::class,'update']);
-    Route::get('/driver/documents/show',[DriverDocumentController::class,'show']);
-    Route::delete('/driver/documents/deleteFile/{id}',[DriverDocumentController::class, 'deleteFile']);
-    Route::post('/driver/documents/updateFile/{id}',[DriverDocumentController::class, 'updateFile']);
-    Route::get('/driver/documents/showGrouped',[DriverDocumentController::class,'showGrouped']);
-});
 
     //Admin
     Route::put('/admin/driver-documents/{id}/approve', [DriverDocumentController::class, 'approve'])->middleware(['check_admin']);
     Route::put('/admin/driver-documents/{id}/reject', [DriverDocumentController::class, 'reject'])->middleware(['check_admin']);
     Route::get('/admin/driver-documents/pending', [DriverDocumentController::class, 'pendingDocuments'])->middleware(['check_admin']);
 
-
+  });
 
     Route::middleware('auth:sanctum')->post('/save-fcm-token', [NotificationController::class, 'saveToken']);
 
@@ -248,3 +243,4 @@ Route::middleware('auth:sanctum')->group(function () {
 
 //     return "No Token Found";
 // });
+  });

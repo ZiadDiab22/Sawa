@@ -6,12 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Profile\UpdateProfileRequest;
 use App\Services\Admin\AdminService;
 use App\Services\Auth\AuthService;
-use App\Services\NotificationService;
 use Dotenv\Exception\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -339,47 +337,57 @@ public function index()
             $this->adminService->listDrivers()
         );
     }
-
-    public function approveDriver($id)
+public function getDriverVehicleInfo($id)
 {
     try {
-        $driver = $this->adminService->approveDriver((int) $id);
 
-$user = DB::table('users')->where('id', $driver->user_id)->first();
+        $driver = $this->adminService->getDriverVehicleInfo((int) $id);
 
-$notification = NotificationService::sendToUser(
-    $user,
-    'driver_approved',
-    'تم قبول حسابك',
-    'يمكنك الآن استقبال الرحلات.',
-    [
-        'driver_id' => (string) $driver->id
-    ]
-);
-   return response()->json([
-            'message' => 'Driver approved successfully',
-            'notification' => [
-                'type' => 'driver_approved',
-                'driver_id' => $driver->id,
-                'firebase_result' => $notification
-            ]
+        return response()->json([
+            'message' => 'Driver vehicle info',
+            'data' => $driver
         ]);
+
     } catch (\Exception $e) {
+
+        return response()->json([
+            'message' => $e->getMessage()
+        ], 404);
+    }
+}
+  public function approveDriver($id)
+{
+    try {
+
+        $result = $this->adminService->approveDriver((int) $id);
+
+        return response()->json([
+            'message' => 'Driver approved successfully',
+            'driver' => $result['driver'],
+            'notification' => $result['notification']
+        ]);
+
+    } catch (\Exception $e) {
+
         return response()->json([
             'message' => $e->getMessage()
         ], 400);
     }
 }
-
 public function suspendDriver($id)
 {
     try {
-        $this->adminService->suspendDriver((int) $id);
+
+        $result = $this->adminService->suspendDriver((int) $id);
 
         return response()->json([
-            'message' => 'Driver suspended successfully'
+            'message' => 'Driver suspended successfully',
+            'driver' => $result['driver'],
+            'notification' => $result['notification']
         ]);
+
     } catch (\Exception $e) {
+
         return response()->json([
             'message' => $e->getMessage()
         ], 400);
@@ -408,25 +416,34 @@ public function listPendingDrivers()
 }
 
  public function toggleReceivingRequests(Request $request, int $driverId)
-    {
-        $validated = $request->validate([
-            'can_receive_requests' => ['required', 'boolean'],
-        ]);
+{
+    $validated = $request->validate([
+        'can_receive_requests' => ['required', 'boolean'],
+    ]);
 
-        $driver = $this->adminService->toggleReceivingRequests(
+    try {
+
+        $result = $this->adminService->toggleReceivingRequests(
             $driverId,
             $validated['can_receive_requests']
         );
 
         return response()->json([
             'message' => 'Driver receiving requests status updated successfully',
-            'data' => [
-                'driver_id' => $driver->id,
-                'can_receive_requests' => $driver->can_receive_requests,
+            'driver' => [
+                'driver_id' => $result['driver']->id,
+                'can_receive_requests' => $result['driver']->can_receive_requests,
             ],
+            'notification' => $result['notification'],
         ]);
-    }
 
+    } catch (\Exception $e) {
+
+        return response()->json([
+            'message' => $e->getMessage(),
+        ], 400);
+    }
+}
 
     public function searchDrivers(Request $request)
 {
@@ -472,19 +489,28 @@ public function rejectDocument(int $id)
     ]);
 }
 
-
 public function toggleBannedDriver(int $id)
 {
-    $driver = $this->adminService->toggleBannedDriver($id);
+    try {
 
-    return response()->json([
-        'message' => 'Driver ban status updated',
-        'data' => [
-            'driver_id' => $driver->id,
-            'is_status' => $driver->is_status,
-            'can_receive_requests' => $driver->can_receive_requests,
-        ]
-    ]);
+        $result = $this->adminService->toggleBannedDriver($id);
+
+        return response()->json([
+            'message' => 'Driver ban status updated',
+            'driver' => [
+                'driver_id' => $result['driver']->id,
+                'is_status' => $result['driver']->is_status,
+                'can_receive_requests' => $result['driver']->can_receive_requests,
+            ],
+            'notification' => $result['notification'],
+        ]);
+
+    } catch (\Exception $e) {
+
+        return response()->json([
+            'message' => $e->getMessage(),
+        ], 400);
+    }
 }
 
     public function showDriver(int $driverProfileId)
@@ -514,24 +540,22 @@ public function riderRides(Request $request, int $riderId)
 }
 
 //financial
-public function getWalletDashboard(Request $request)
-    {
-        $request->validate([
-            'driver_id' => ['required', 'exists:driver_profiles,user_id'],
-            'per_page'  => ['nullable', 'integer', 'min:1']
-        ]);
+public function getWalletDashboard(Request $request, int $driverId)
+{
+    $request->validate([
+        'per_page' => ['nullable', 'integer', 'min:1']
+    ]);
 
-        $driverId = (int) $request->driver_id;
-        $perPage = $request->get('per_page', 10);
+    $perPage = $request->get('per_page', 10);
 
-        $data = $this->adminService->getWalletDashboard($driverId, $perPage);
+    $data = $this->adminService->getWalletDashboard($driverId, $perPage);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Driver wallet dashboard retrieved successfully',
-            'data' => $data
-        ]);
-    }
+    return response()->json([
+        'status' => true,
+        'message' => 'Driver wallet dashboard retrieved successfully',
+        'data' => $data
+    ]);
+}
 
 
 
