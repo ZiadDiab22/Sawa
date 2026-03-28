@@ -17,52 +17,25 @@ class RideInfoRepository
     ];
 public function getRides(string $status): Collection
 {
-    return DB::table('rides')
-        ->join('users as drivers', 'drivers.id', '=', 'rides.driver_id')
-        ->join('users as passengers', 'passengers.id', '=', 'rides.user_id')
-        ->join('driver_profiles as dp', 'dp.user_id', '=', 'drivers.id')
-        ->select([
-            'rides.id',
-            'rides.ride_request_id',
-            'rides.user_id',
-
-            // استبدال driver_id
-            'drivers.id as driver_id',
-            'rides.start_lat',
-            'rides.start_lng',
-            'rides.end_lat',
-            'rides.end_lng',
-
-            'rides.distance_km',
-            'rides.price',
-            'rides.duration_minutes',
-            'rides.passengers',
-
-            'rides.status',
-            'rides.code',
-
-            'rides.promo_code_id',
-            'rides.cancellation_reason_id',
-
-            'rides.created_at',
-            'rides.updated_at',
-
-            'drivers.name as driver_name',
-            'passengers.name as passenger_name',
-
-            'dp.vehicle_model',
-            'dp.vehicle_year',
-            'dp.vehicle_color',
-            'dp.vehicle_plate_number',
-        ])
-        ->when(
-            $status !== 'all' && in_array($status, self::STATUSES),
-            fn($q) => $q->where('rides.status', $status)
-        )
-        ->latest('rides.created_at')
-        ->get();
-}
-
+ return DB::table('rides')
+ ->join('users as drivers', 'drivers.id', '=', 'rides.driver_id')
+ ->join('users as passengers', 'passengers.id', '=', 'rides.user_id')
+ ->join('driver_profiles as dp', 'dp.user_id', '=', 'drivers.id')
+ ->select([
+ 'drivers.name as driver_name',
+ 'passengers.name as passenger_name',
+ 'dp.vehicle_model',
+ 'dp.vehicle_year',
+ 'dp.vehicle_color',
+ 'dp.vehicle_plate_number',
+ ])
+ ->when(
+ $status !== 'all' && in_array($status, self::STATUSES),
+ fn($q) => $q->where('rides.status', $status)
+ )
+ ->latest('rides.created_at')
+ ->get();
+ }
     public function findWithDetails(int $rideId)
     {
         return Ride::with([

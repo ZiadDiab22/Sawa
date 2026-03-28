@@ -38,8 +38,13 @@ class User extends Authenticatable
         return $this->hasOne(DriverLocation::class, 'driver_id');
     }
 
-    public function driverDocuments()
+//     public function driverDocuments()
+// {
+//     return $this->hasMany(DriverDocument::class);
+// }
+
+public function documents()
 {
-    return $this->hasMany(DriverDocument::class);
+    return $this->hasMany(DriverDocument::class, 'user_id');
 }
 }
