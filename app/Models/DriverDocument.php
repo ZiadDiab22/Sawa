@@ -18,7 +18,7 @@ class DriverDocument extends Model
     ];
 
     protected $casts = [
-        // 'file_path' => 'array',
+        'file_path' => 'array',
         'expires_at' => 'date'
     ];
 
