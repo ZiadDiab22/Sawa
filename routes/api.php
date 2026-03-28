@@ -33,7 +33,7 @@ Route::prefix('user')->group(function () {
     Route::post('/login', [UserController::class, 'login']);
     Route::post('/verifyOtp', [AuthController::class, 'verifyOtp']);
     Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
-
+ Route::middleware('auth:sanctum')->post('/save-fcm-token', [NotificationController::class, 'saveToken']);
 
     Route::middleware(['auth:sanctum', 'check_user'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -229,7 +229,7 @@ Route::prefix('admin')->group(function () {
 
   });
 
-    Route::middleware('auth:sanctum')->post('/save-fcm-token', [NotificationController::class, 'saveToken']);
+   
 
 // Route::get('/test-notification', function () {
 //     $user = \App\Models\User::first();
