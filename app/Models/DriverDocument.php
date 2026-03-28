@@ -27,11 +27,6 @@ class DriverDocument extends Model
         return $this->belongsTo(DriverProfile::class, 'driver_id');
     }
 
-<<<<<<< HEAD
-=======
-  
-
->>>>>>> 3afd7187eb0a019b9f24592a19601cf5fcd7bcb4
 public function user()
 {
     return $this->belongsTo(User::class);
