@@ -18,7 +18,7 @@ class DriverDocument extends Model
     ];
 
     protected $casts = [
-        // 'file_path' => 'array',
+        'file_path' => 'array',
         'expires_at' => 'date'
     ];
 
@@ -26,21 +26,6 @@ class DriverDocument extends Model
     {
         return $this->belongsTo(DriverProfile::class, 'driver_id');
     }
-
-    public function getFilePathAttribute($value)
-{
-    if (!$value) {
-        return null;
-    }
-
-    $files = json_decode($value, true);
-
-    if (is_array($files)) {
-        return array_map(fn($file) => asset('storage/'.$file), $files);
-    }
-
-    return asset('storage/'.$value);
-}
 
 public function user()
 {
