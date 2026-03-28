@@ -94,7 +94,7 @@ public function showGrouped()
 
     //Admin
 
-      public function approve(int $id)
+    public function approve(int $id)
     {
         $doc = $this->driverDocumentService->approveDocument($id);
 
@@ -103,6 +103,7 @@ public function showGrouped()
             'data' => $doc
         ]);
     }
+
     public function reject(int $id)
     {
         $doc = $this->driverDocumentService->rejectDocument($id);

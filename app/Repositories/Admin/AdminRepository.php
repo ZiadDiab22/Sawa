@@ -835,13 +835,13 @@ public function findByDriverProfileId(int $userId)
         ->orderBy('created_at', 'desc')
         ->get();
 }
-
 public function updateStatus(int $id, string $status): DriverDocument
 {
-    if (!$doc->user->driverProfile) {
-    throw new \Exception('This user is not a driver');
-}
     $doc = DriverDocument::with('user.driverProfile')->findOrFail($id);
+
+    if (!$doc->user->driverProfile) {
+        throw new \Exception('This user is not a driver');
+    }
 
     $driverProfile = $doc->user->driverProfile;
 
