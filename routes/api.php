@@ -141,9 +141,9 @@ Route::prefix('admin')->group(function () {
     // });
 
 //rider and driver
-// Route::middleware(['auth:sanctum'])->group(function () {
+    Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('show', [AboutUsController::class, 'show']);
-// });
+});
 
 //Admin
         Route::post('updateAboutUs', [AboutUsController::class, 'update']);
