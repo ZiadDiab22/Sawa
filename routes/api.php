@@ -126,7 +126,6 @@ Route::prefix('admin')->group(function () {
         //drivers
         Route::put('/driver/accept/{id}', [DriverController::class, 'accept']);
         Route::post('/driver/{id}/wallet/add', [DriverWalletController::class, 'add']);
-    // Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/drivers/pending', [DriverApprovalController::class, 'pendingDrivers']);
         Route::get('/drivers/{id}', [DriverApprovalController::class, 'show']);
         Route::post('/drivers/{id}/approve', [DriverApprovalController::class, 'approve']);
@@ -138,14 +137,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/driver/stats/{id}', [DriverProfitController::class, 'show'])->middleware(['check_admin']);
         Route::get('/company-stats', [CompanyProfitController::class, 'show'])->middleware(['check_admin']);
         Route::get('/driver-locations', [DriverLocationController::class, 'index'])->middleware(['check_admin']);
-    // });
-
-//rider and driver
-// Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('show', [AboutUsController::class, 'show']);
-// });
-
-//Admin
+        //Admin
         Route::post('updateAboutUs', [AboutUsController::class, 'update']);
         Route::post('storeAboutUs', [AboutUsController::class, 'store']);
         //test
@@ -156,7 +148,6 @@ Route::prefix('admin')->group(function () {
         Route::get('/rides/completed/count',[AdminController::class, 'completedRidesCount']);
         Route::get('/rides/last-five',[AdminController::class, 'lastFiveCompletedRides']);
         Route::get('/dashboard',[AdminController::class, 'dashboard']);
-
         //vehicle_types
         Route::get('/vehicle-types',[AdminController::class, 'allVehicleTypes']);
         Route::patch('/vehicle-types/{id}/toggle-status', [AdminController::class, 'toggleVehicleTypeStatus']);
@@ -194,14 +185,10 @@ Route::prefix('admin')->group(function () {
         Route::get('/showDriver/{driverProfileId}', [AdminController::class, 'showDriver']);
         Route::get( '/driverRides/{driverProfileId}',[AdminController::class, 'driverRides']);
         Route::get( '/riderRides/{RideridId}',[AdminController::class, 'riderRides']);
-
-//financial
+        //financial
         Route::get('/getWalletDashboard/{driverId}',[AdminController::class, 'getWalletDashboard']);
-//vehicle
+        //vehicle
         Route::get('/vehicle/{id}', [AdminController::class,'getDriverVehicleInfo']);
-
-
-
         //Rider Managment
         Route::get('/Showriders', [AdminController::class, 'riders']);
         Route::get('/Searchriders', [AdminController::class, 'Searchriders']);
@@ -210,37 +197,16 @@ Route::prefix('admin')->group(function () {
         Route::get('/activeRiders', [AdminController::class, 'activeRiders']);
         Route::get('/inactiveRiders', [AdminController::class, 'inactiveRiders']);
         Route::get('/showRiderProfile/{id}', [AdminController::class, 'showRiderProfile']);
-        //About Us
-        Route::get('/show', [AboutUsController::class, 'show']);
+        //Admin
+        Route::put('/admin/driver-documents/{id}/approve', [DriverDocumentController::class, 'approve'])->middleware(['check_admin']);
+        Route::put('/admin/driver-documents/{id}/reject', [DriverDocumentController::class, 'reject'])->middleware(['check_admin']);
+        Route::get('/admin/driver-documents/pending', [DriverDocumentController::class, 'pendingDocuments'])->middleware(['check_admin']);
+    });
+});
 
-
-
-
-
-//  documents
-    // Route::post('/driver/documents', [DriverDocumentController::class, 'store']);
-    // Route::post('/driver/documents/{id}', [DriverDocumentController::class, 'update']);
-    // Route::get('/driver/documents', [DriverDocumentController::class, 'show']);
-
-    //Admin
-    Route::put('/admin/driver-documents/{id}/approve', [DriverDocumentController::class, 'approve'])->middleware(['check_admin']);
-    Route::put('/admin/driver-documents/{id}/reject', [DriverDocumentController::class, 'reject'])->middleware(['check_admin']);
-    Route::get('/admin/driver-documents/pending', [DriverDocumentController::class, 'pendingDocuments'])->middleware(['check_admin']);
-
-  });
-
-   
-
-// Route::get('/test-notification', function () {
-//     $user = \App\Models\User::first();
-
-// //     if ($user && $user->fcm_token) {
-//         app(\App\Services\FirebaseNotificationService::class)
-//             ->send($user->fcm_token, "طلب جديد 🚕", "عندك طلب تاكسي جديد");
-
-//         return "Notification Sent";
-//     }
-
-//     return "No Token Found";
+//rider and driver
+//AboutUs
+// Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('show', [AboutUsController::class, 'show']);
 // });
-  });
+
