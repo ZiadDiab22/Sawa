@@ -337,11 +337,11 @@ public function index()
             $this->adminService->listDrivers()
         );
     }
-public function getDriverVehicleInfo($id)
+public function getDriverVehicleInfo(int $driverId)
 {
     try {
 
-        $driver = $this->adminService->getDriverVehicleInfo((int) $id);
+        $driver = $this->adminService->getDriverVehicleInfo($driverId);
 
         return response()->json([
             'message' => 'Driver vehicle info',
@@ -355,7 +355,8 @@ public function getDriverVehicleInfo($id)
         ], 404);
     }
 }
-  public function approveDriver($id)
+
+    public function approveDriver($id)
 {
     try {
 
@@ -374,11 +375,11 @@ public function getDriverVehicleInfo($id)
         ], 400);
     }
 }
-public function suspendDriver($id)
+public function suspendDriver($userId)
 {
     try {
 
-        $result = $this->adminService->suspendDriver((int) $id);
+        $result = $this->adminService->suspendDriver((int) $userId);
 
         return response()->json([
             'message' => 'Driver suspended successfully',
@@ -393,7 +394,6 @@ public function suspendDriver($id)
         ], 400);
     }
 }
-
 public function listActiveDrivers()
 {
     return response()->json(
@@ -458,24 +458,34 @@ public function listPendingDrivers()
 }
 
 
-public function documentsByDriver(int $driverId)
+public function documentsByDriver(int $userId)
 {
     return response()->json([
-        'driver_id' => $driverId,
+        'user_id' => $userId,
         'documents' => $this->adminService
-            ->getDocumentsByDriverId($driverId)
+            ->getDocumentsByDriverId($userId)
     ]);
 }
 
 public function approveDocument(int $id)
 {
-    $doc = $this->adminService
-        ->approveDocumentByAdmin($id);
+    try {
 
-    return response()->json([
-        'message' => 'Document approved successfully',
-        'data' => $doc
-    ]);
+        $doc = $this->adminService
+            ->approveDocumentByAdmin($id);
+
+        return response()->json([
+            'message' => 'Document approved successfully',
+            'data' => $doc
+        ]);
+
+    } catch (\Exception $e) {
+
+        return response()->json([
+            'message' => $e->getMessage()
+        ], 400);
+
+    }
 }
 
 public function rejectDocument(int $id)
@@ -489,16 +499,17 @@ public function rejectDocument(int $id)
     ]);
 }
 
-public function toggleBannedDriver(int $id)
+public function toggleBannedDriver(int $userId)
 {
     try {
 
-        $result = $this->adminService->toggleBannedDriver($id);
+        $result = $this->adminService->toggleBannedDriver($userId);
 
         return response()->json([
             'message' => 'Driver ban status updated',
             'driver' => [
-                'driver_id' => $result['driver']->id,
+                'user_id' => $result['driver']->user_id,
+                'driver_profile_id' => $result['driver']->id,
                 'is_status' => $result['driver']->is_status,
                 'can_receive_requests' => $result['driver']->can_receive_requests,
             ],
@@ -513,19 +524,19 @@ public function toggleBannedDriver(int $id)
     }
 }
 
-    public function showDriver(int $driverProfileId)
-    {
-        return response()->json([
-            'message' => 'Driver details retrieved successfully',
-            'data' => $this->adminService->driverDetails($driverProfileId)
-        ]);
-    }
+    public function showDriver(int $userId)
+{
+    return response()->json([
+        'message' => 'Driver details retrieved successfully',
+        'data' => $this->adminService->driverDetails($userId)
+    ]);
+}
 
-     public function driverRides(Request $request, int $driverProfileId)
+    public function driverRides(Request $request, int $driverUserId)
 {
     $status = $request->query('status');
 
-    $rides = $this->adminService->driverRides($driverProfileId, $status);
+    $rides = $this->adminService->driverRides($driverUserId, $status);
 
     return response()->json($rides);
 }

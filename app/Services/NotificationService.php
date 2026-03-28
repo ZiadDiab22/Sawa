@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\User;
 
+
+
 class NotificationService
 {
     public static function sendToUser(User $user, string $type, string $title, string $body, array $data = [])

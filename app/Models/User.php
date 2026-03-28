@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\DriverDocument;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -36,4 +37,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(DriverLocation::class, 'driver_id');
     }
+
+    public function driverDocuments()
+{
+    return $this->hasMany(DriverDocument::class);
+}
 }

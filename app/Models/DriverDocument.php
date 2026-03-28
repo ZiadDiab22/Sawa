@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use App\Models\DriverProfile;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
 class DriverDocument extends Model
 {
-    protected $fillable = ['driver_id','type','file_path','expires_at','status'];
+    protected $fillable = ['user_id','driver_id','type','file_path','expires_at','status'];
 
     protected $casts = [
         'file_path' => 'array',
@@ -32,6 +33,11 @@ class DriverDocument extends Model
     }
 
     return asset('storage/'.$value);
+}
+
+public function user()
+{
+    return $this->belongsTo(User::class);
 }
 }
 

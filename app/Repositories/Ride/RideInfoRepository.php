@@ -27,8 +27,7 @@ public function getRides(string $status): Collection
             'rides.user_id',
 
             // استبدال driver_id
-            'dp.id as driver_id',
-
+            'drivers.id as driver_id',
             'rides.start_lat',
             'rides.start_lng',
             'rides.end_lat',

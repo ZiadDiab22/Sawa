@@ -39,7 +39,7 @@ class AdminRepository
         $totalRidesCount = DB::table('ride_requests')->count();
 
         $completedRidesCount = DB::table('ride_requests')
-            ->where('status', 'accepted')
+            ->where('status', 'completed')
             ->count();
 
         // ========= PROFITS =========
@@ -309,7 +309,7 @@ public function getVehicleMakesByType(string $type)
 
     public function getDriversList() : LengthAwarePaginator
     {
-        return DriverProfile::query()
+        $drivers = DriverProfile::query()
             ->with([
                 'user:id,name,email,phone',
                 'vehicleMake:id,name',
@@ -368,14 +368,14 @@ public function getVehicleMakesByType(string $type)
 
     return $drivers;
     }
-
 public function getDriverVehicleInfo(int $driverId)
 {
     $driver = DB::table('driver_profiles as dp')
         ->leftJoin('vehicle_types as vt', 'vt.id', '=', 'dp.vehicle_type_id')
         ->leftJoin('vehicle_makes as vm', 'vm.id', '=', 'dp.vehicle_make_id')
         ->select([
-            'dp.id as driver_id',
+            'dp.user_id as driver_id',
+            'dp.id as driver_profile_id',
             'vt.name as vehicle_type',
             'vm.name as vehicle_make',
             'dp.vehicle_model',
@@ -387,7 +387,7 @@ public function getDriverVehicleInfo(int $driverId)
             'dp.insurance_document',
             'dp.vehicle_images',
         ])
-        ->where('dp.id', $driverId)
+        ->where('dp.user_id', $driverId)
         ->first();
 
     if (!$driver) {
@@ -421,7 +421,7 @@ public function approveDriver(int $driverId)
     return DB::transaction(function () use ($driverId) {
 
         $driver = DB::table('driver_profiles')
-            ->where('id', $driverId)
+            ->where('user_id', $driverId)
             ->lockForUpdate()
             ->first();
 
@@ -432,9 +432,21 @@ public function approveDriver(int $driverId)
         if (!in_array($driver->status, ['pending', 'suspended'])) {
             return null;
         }
+        $documents = DB::table('driver_documents')
+            ->where('driver_id', $driver->id)
+            ->get();
 
+        if ($documents->isEmpty()) {
+            throw new \Exception('Driver documents not uploaded');
+        }
+
+        $notApproved = $documents->where('status', '!=', 'approved');
+
+        if ($notApproved->count() > 0) {
+            throw new \Exception('All driver documents must be approved first');
+        }
         DB::table('driver_profiles')
-            ->where('id', $driverId)
+            ->where('user_id', $driverId)
             ->update([
                 'status' => 'approved',
                 'is_status' => 'active',
@@ -460,7 +472,7 @@ public function approveDriver(int $driverId)
         ]);
 
         $driver = DB::table('driver_profiles')
-            ->where('id', $driverId)
+            ->where('user_id', $driverId)
             ->first();
 
         // تحويل روابط الصور
@@ -476,8 +488,7 @@ public function approveDriver(int $driverId)
             ? asset('storage/' . $driver->insurance_document)
             : null;
 
-        $images = json_decode($driver->vehicle_images, true);
-
+        $images = json_decode($driver->vehicle_images ?? '[]', true);
         if ($images) {
             $driver->vehicle_images = collect($images)
                 ->map(fn($img) => asset('storage/' . $img))
@@ -487,12 +498,12 @@ public function approveDriver(int $driverId)
         return $driver;
     });
 }
-public function suspendDriver(int $driverId)
+public function suspendDriver(int $userId)
 {
-    return DB::transaction(function () use ($driverId) {
+    return DB::transaction(function () use ($userId) {
 
         $driver = DB::table('driver_profiles')
-            ->where('id', $driverId)
+            ->where('user_id', $userId)
             ->whereIn('status', ['pending', 'approved'])
             ->lockForUpdate()
             ->first();
@@ -502,26 +513,42 @@ public function suspendDriver(int $driverId)
         }
 
         DB::table('driver_profiles')
-            ->where('id', $driverId)
+            ->where('user_id', $userId)
             ->update([
                 'status' => 'suspended',
+                'is_status' => 'inactive',
+                'can_receive_requests' => false,
+                'updated_at' => now(),
+            ]);
+
+        DB::table('users')
+            ->where('id', $userId)
+            ->update([
+                'blocked' => true,
                 'updated_at' => now(),
             ]);
 
         $driver = DB::table('driver_profiles')
-            ->where('id', $driverId)
+            ->where('user_id', $userId)
             ->first();
 
-        // تحويل روابط الصور إلى URL كامل
-        $driver->vehicle_document = asset('storage/' . $driver->vehicle_document);
-        $driver->license_document = asset('storage/' . $driver->license_document);
-        $driver->insurance_document = asset('storage/' . $driver->insurance_document);
+        // روابط الصور
+        $driver->vehicle_document = $driver->vehicle_document
+            ? asset('storage/'.$driver->vehicle_document)
+            : null;
 
-        // معالجة صور السيارة
+        $driver->license_document = $driver->license_document
+            ? asset('storage/'.$driver->license_document)
+            : null;
+
+        $driver->insurance_document = $driver->insurance_document
+            ? asset('storage/'.$driver->insurance_document)
+            : null;
+
         $vehicleImages = json_decode($driver->vehicle_images, true) ?? [];
 
-        $driver->vehicle_images = array_map(function ($image) {
-            return asset('storage/' . $image);
+        $driver->vehicle_images = array_map(function ($img) {
+            return asset('storage/'.$img);
         }, $vehicleImages);
 
         return $driver;
@@ -533,6 +560,10 @@ public function getActiveDriversList()
     return DriverProfile::query()
         ->where('driver_profiles.status', 'approved')
         ->where('driver_profiles.is_status', 'active')
+
+        ->whereHas('user', function ($q) {
+        $q->where('blocked', false);
+        })
 
         ->whereRaw("
             (
@@ -776,7 +807,7 @@ public function getPendingDrivers()
 
             // search by driver id
             if (is_numeric($search)) {
-                $q->orWhere('driver_profiles.id', $search);
+                $q->orWhere('driver_profiles.user_id', $search);
             }
 
             // search by driver name
@@ -798,33 +829,45 @@ public function getPendingDrivers()
         ->paginate(10);
 }
 
-public function findByDriverProfileId(int $driverId)
+public function findByDriverProfileId(int $userId)
 {
-    return DriverDocument::where('driver_id', $driverId)
+    return DriverDocument::where('user_id', $userId)
         ->orderBy('created_at', 'desc')
         ->get();
 }
 
 public function updateStatus(int $id, string $status): DriverDocument
 {
-    $doc = DriverDocument::findOrFail($id);
+    if (!$doc->user->driverProfile) {
+    throw new \Exception('This user is not a driver');
+}
+    $doc = DriverDocument::with('user.driverProfile')->findOrFail($id);
+
+    $driverProfile = $doc->user->driverProfile;
+
+    if (!$driverProfile) {
+        throw new \Exception('User is not registered as driver');
+    }
+
+    if ($driverProfile->status !== 'approved') {
+        throw new \Exception('Driver must be approved before approving documents');
+    }
+
     $doc->status = $status;
     $doc->save();
 
     return $doc;
 }
 
-
-public function toggleBannedDriver(int $driverId): DriverProfile
+public function toggleBannedDriver(int $userId): DriverProfile
 {
-    $driver = DriverProfile::findOrFail($driverId);
+    $driver = DriverProfile::where('user_id', $userId)->firstOrFail();
 
     if ($driver->is_status === 'banned') {
 
         // فك الحظر
         $driver->update([
             'is_status' => 'inactive',
-            'updated_at' => now(),
         ]);
 
     } else {
@@ -833,24 +876,28 @@ public function toggleBannedDriver(int $driverId): DriverProfile
         $driver->update([
             'is_status' => 'banned',
             'can_receive_requests' => false,
-            'updated_at' => now(),
         ]);
     }
 
     return $driver->fresh();
 }
-    public function getDriverProfile(int $driverProfileId): DriverProfile
-    {
-        return DriverProfile::with([
-            'user',
-            'vehicleMake',
-            'documents'
-        ])->findOrFail($driverProfileId);
-    }
+
+public function getDriverProfileByUser(int $userId): DriverProfile
+{
+    return DriverProfile::with([
+        'user',
+        'vehicleMake',
+        'user.documents'
+    ])
+    ->where('user_id', $userId)
+    ->firstOrFail();
+}
+
+//لهون وصلت
 
     public function rideStats(int $driverUserId): array
 {
-    $stats = Ride::where('driver_id', $driverUserId)
+    $stats = Ride::where('user_id', $driverUserId)
         ->selectRaw("
             COUNT(*) as total_rides,
             SUM(CASE WHEN status IN ('driver_on_way','on_going') THEN 1 ELSE 0 END) as live_rides,
@@ -897,7 +944,7 @@ public function earnings(int $driverUserId): array
         'by_card' => 0,
     ];
 }
-    public function getDriverRides(int $driverProfileId, ?string $status = null)
+    public function getDriverRides(int $driverUserId, ?string $status = null)
 {
     $query = DB::table('driver_profiles as dp')
         ->join('users as d', 'd.id', '=', 'dp.user_id')
@@ -906,7 +953,7 @@ public function earnings(int $driverUserId): array
         ->join('ride_requests as rr', 'rr.id', '=', 'r.ride_request_id')
         ->leftJoin('vehicle_types as vt', 'vt.id', '=', 'dp.vehicle_type_id')
         ->leftJoin('vehicle_makes as vm', 'vm.id', '=', 'dp.vehicle_make_id')
-        ->where('dp.id', $driverProfileId);
+        ->where('dp.id', $driverUserId);
 
     if ($status) {
 
