@@ -50,6 +50,11 @@ Route::prefix('user')->group(function () {
     });
 });
 
+//rider and driver
+//     Route::middleware(['auth:sanctum'])->group(function () {
+//     Route::get('show', [AboutUsController::class, 'show']);
+// });
+
 Route::prefix('driver')->group(function () {
     Route::post('/register', [UserController::class, 'register']);
     Route::post('/login', [UserController::class, 'login']);
@@ -140,10 +145,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/driver-locations', [DriverLocationController::class, 'index'])->middleware(['check_admin']);
     // });
 
-//rider and driver
-    Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('show', [AboutUsController::class, 'show']);
-});
+
 
 //Admin
         Route::post('updateAboutUs', [AboutUsController::class, 'update']);
@@ -228,6 +230,7 @@ Route::prefix('admin')->group(function () {
     Route::get('/admin/driver-documents/pending', [DriverDocumentController::class, 'pendingDocuments'])->middleware(['check_admin']);
 
   });
+   
 
    
 
