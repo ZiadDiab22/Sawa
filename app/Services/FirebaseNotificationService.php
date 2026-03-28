@@ -10,25 +10,12 @@ class FirebaseNotificationService
 {
     protected $messaging;
 
+
     public function __construct()
-    {
-        try {
-            $serviceAccountPath = storage_path('app/firebase/firebase.json');
+{
+    $this->messaging = app('firebase.messaging');
+}
 
-            if (!file_exists($serviceAccountPath)) {
-                \Log::error('Firebase Service Account file not found at: ' . $serviceAccountPath);
-                return;
-            }
-
-            $factory = (new Factory)
-                ->withServiceAccount($serviceAccountPath);
-
-            $this->messaging = $factory->createMessaging();
-
-        } catch (\Throwable $e) {
-            \Log::error('Firebase initialization failed: ' . $e->getMessage());
-        }
-    }
 
     /**
      * إرسال إشعار لمستخدم
