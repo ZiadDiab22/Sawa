@@ -8,10 +8,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class DriverDocument extends Model
 {
-    protected $fillable = ['user_id','driver_id','type','file_path','expires_at','status'];
+    protected $fillable = [
+    'user_id',
+    'driver_id',
+    'type',
+    'file_path',
+    'expires_at',
+    'status'
+    ];
 
     protected $casts = [
-        'file_path' => 'array',
+        // 'file_path' => 'array',
         'expires_at' => 'date'
     ];
 
