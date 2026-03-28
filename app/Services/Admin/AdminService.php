@@ -268,6 +268,7 @@ public function getVehicleMakesByType(string $type)
 
     return $driver;
 }
+
 public function approveDriver(int $driverId)
 {
     $driver = $this->AdminRepository->approveDriver($driverId);
@@ -652,7 +653,7 @@ public function toggleBannedDriver(int $userId)
 public function driverRides(int $driverUserId, ?string $status = null): array
 {
     $rides = $this->AdminRepository->getDriverRides($driverUserId, $status);
-    
+
     return [
         'data' => collect($rides->items())->map(function ($ride) {
 

@@ -835,6 +835,8 @@ public function findByDriverProfileId(int $userId)
         ->orderBy('created_at', 'desc')
         ->get();
 }
+
+
 public function updateStatus(int $id, string $status): DriverDocument
 {
     $doc = DriverDocument::with('user.driverProfile')->findOrFail($id);
@@ -847,10 +849,6 @@ public function updateStatus(int $id, string $status): DriverDocument
 
     if (!$driverProfile) {
         throw new \Exception('User is not registered as driver');
-    }
-
-    if ($driverProfile->status !== 'approved') {
-        throw new \Exception('Driver must be approved before approving documents');
     }
 
     $doc->status = $status;
