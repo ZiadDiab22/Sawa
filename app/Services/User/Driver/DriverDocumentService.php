@@ -1,6 +1,7 @@
 <?php
 namespace App\Services\User\Driver;
 
+use Illuminate\Support\Facades\Auth;
 use App\Models\DriverDocument;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -23,22 +24,28 @@ class DriverDocumentService
         return $paths;
     }
 
-    public function store(array $data): DriverDocument
-    {
-        $driverId = auth()->user()->driverProfile->id;
+  
+public function store(array $data): DriverDocument
+{
+    $user = auth()->user();
+    $driverId = $user->driverProfile->id;
 
-        $uploaded = $this->uploadTwoFiles($data['file_path'],'driver_docs/'.$data['type']);
+    $uploaded = $this->uploadTwoFiles(
+        $data['file_path'],
+        'driver_docs/'.$data['type']
+    );
 
-        $doc = $this->repo->create([
-            'driver_id' => $driverId,
-            'type'      => $data['type'],
-            'file_path'     => $uploaded,
-            'expires_at'=> $data['expires_at'] ?? null,
-            'status'    => 'pending'
-        ]);
+    $doc = $this->repo->create([
+        'user_id'   => $user->id,
+        'driver_id' => $driverId,
+        'type'      => $data['type'],
+        'file_path' => $uploaded,
+        'expires_at'=> $data['expires_at'] ?? null,
+        'status'    => 'pending'
+    ]);
 
-        return $doc;
-    }
+    return $doc;
+}
 
     public function update(int $id, array $data): DriverDocument
     {
