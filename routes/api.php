@@ -99,6 +99,7 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::get('/documents/showGrouped',[DriverDocumentController::class,'showGrouped']);
 
 
+        Route::get('/vehicle-makes/getAll', [AdminController::class, 'getAllVehicleMakes']);
 
 });
 
