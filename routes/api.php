@@ -212,5 +212,5 @@ Route::prefix('admin')->group(function () {
 
 
     Route::get('show', [AboutUsController::class, 'show']);
-
     Route::get('/vehicle-makes/getAllMark', [AdminController::class, 'getAllVehicleMakes']);
+    Route::post('/logout', [AuthController::class, 'logout']);

@@ -28,8 +28,7 @@ class RideBroadcastService
     foreach ($drivers as $driverLocation) {
 
         // 🔥 جلب User الحقيقي
-        $driver = User::find($driverLocation->id);
-
+        $driver = User::find($driverLocation->Id);
         if (!$driver) {
             continue;
         }
@@ -48,8 +47,7 @@ class RideBroadcastService
         );
 
       broadcast(
-        new NewRideRequestCreated($rideRequest, $driver->driver_id)
-      );
+           new NewRideRequestCreated($rideRequest, $driver->id)      );
     }
   }
 

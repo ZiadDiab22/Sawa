@@ -17,11 +17,11 @@ class NewRideRequestCreated implements ShouldBroadcastNow
     public function broadcastOn(): PrivateChannel
     {
         Log::info('Broadcasting ride request', [
-            'driver_id' => $this->driverId,
+            'driverId' => $this->Id,
             'ride_request_id' => $this->rideRequest->id,
         ]);
 
-        return new PrivateChannel("drivers.{$this->driverId}");
+        return new PrivateChannel("drivers.{$this->Id}");
     }
 
     public function broadcastAs(): string
