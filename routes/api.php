@@ -46,6 +46,8 @@ Route::prefix('user')->group(function () {
         Route::get('/history', [RideRequestController::class, 'history']);
         Route::get('/historyById', [RideRequestController::class, 'historyById']);
         Route::get('/completed', [RideRequestController::class, 'completed']);
+        // Route::get('/vehicle-makes/getAll', [AdminController::class, 'getAllVehicleMakes']);
+
     });
 });
 
@@ -98,8 +100,7 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
     Route::post('/documents/updateFile/{id}',[DriverDocumentController::class, 'updateFile']);
     Route::get('/documents/showGrouped',[DriverDocumentController::class,'showGrouped']);
 
-
-        Route::get('/vehicle-makes/getAll', [AdminController::class, 'getAllVehicleMakes']);
+    // Route::get('/vehicle-makes/getAllMark', [AdminController::class, 'getAllVehicleMakes']);
 
 });
 
@@ -211,3 +212,5 @@ Route::prefix('admin')->group(function () {
 
 
     Route::get('show', [AboutUsController::class, 'show']);
+
+    Route::get('/vehicle-makes/getAllMark', [AdminController::class, 'getAllVehicleMakes']);
