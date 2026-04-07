@@ -28,7 +28,7 @@ class RideBroadcastService
     foreach ($drivers as $driverLocation) {
 
         // 🔥 جلب User الحقيقي
-        $driver = User::find($driverLocation->driver_id);
+        $driver = User::find($driverLocation->id);
 
         if (!$driver) {
             continue;
