@@ -15,51 +15,30 @@ class RideInfoRepository
         'on_going',
         'driver_on_way',
     ];
+
     public function getRides(string $status): Collection
-{
-    return DB::table('rides')
-        ->join('users as drivers', 'drivers.id', '=', 'rides.driver_id')
-        ->join('users as passengers', 'passengers.id', '=', 'rides.user_id')
-        ->join('driver_profiles as dp', 'dp.user_id', '=', 'rides.driver_id') // 🔥 مهم
-
-        ->select([
-            'rides.id',
-            'rides.ride_request_id',
-
-            'rides.driver_id', // 🔥 القاعدة الذهبية
-            'rides.user_id',
-
-            'drivers.name as driver_name',
-            'passengers.name as passenger_name',
-
-            'rides.start_lat',
-            'rides.start_lng',
-            'rides.end_lat',
-            'rides.end_lng',
-
-            'rides.distance_km',
-            'rides.price',
-            'rides.duration_minutes',
-
-            'rides.status',
-            'rides.code',
-
-            'rides.created_at',
-
-            'dp.vehicle_model',
-            'dp.vehicle_year',
-            'dp.vehicle_color',
-            'dp.vehicle_plate_number',
-        ])
-
-        ->when(
-            $status !== 'all' && in_array($status, self::STATUSES),
-            fn($q) => $q->where('rides.status', $status)
-        )
-
-        ->orderByDesc('rides.created_at')
-        ->get();
-}
+     {
+ return DB::table('rides')
+ ->join('users as drivers', 'drivers.id', '=', 'rides.driver_id')
+ ->join('users as passengers', 'passengers.id', '=', 'rides.user_id')
+ ->join('driver_profiles as dp', 'dp.user_id', '=', 'drivers.id')
+ ->select([
+    'rides.*',
+    'rides.cancellation_reason_id', 
+    'drivers.name as driver_name',
+    'passengers.name as passenger_name',
+    'dp.vehicle_model',
+    'dp.vehicle_year',
+    'dp.vehicle_color',
+    'dp.vehicle_plate_number',
+])
+ ->when(
+ $status !== 'all' && in_array($status, self::STATUSES),
+ fn($q) => $q->where('rides.status', $status)
+ )
+ ->latest('rides.created_at')
+ ->get();
+ }
 
     public function findWithDetails(int $rideId)
     {
