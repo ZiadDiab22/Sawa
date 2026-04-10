@@ -13,8 +13,7 @@ public function register()
 {
     $this->app->singleton('firebase.messaging', function () {
 
-        $credentialsPath = env('FIREBASE_CREDENTIALS'); 
-
+        $credentials = env('FIREBASE_CREDENTIALS_JSON');
         if (!$credentialsPath || !file_exists($credentialsPath)) {
             \Log::error('Firebase credentials file not found', [
                 'path' => $credentialsPath
@@ -22,8 +21,8 @@ public function register()
             return null;
         }
 
-        return (new \Kreait\Firebase\Factory)
-            ->withServiceAccount($credentialsPath)
+        return (new Factory)
+            ->withServiceAccount(json_decode($credentials, true)) 
             ->createMessaging();
     });
 }
