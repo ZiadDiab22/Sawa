@@ -861,11 +861,16 @@ public function toggleBannedDriver(int $userId): DriverProfile
 {
     $driver = DriverProfile::where('user_id', $userId)->firstOrFail();
 
+    if ($driver->status !== 'approved') {
+        throw new \Exception('Driver is not approved');
+    }
+    
     if ($driver->is_status === 'banned') {
-
         // فك الحظر
         $driver->update([
-            'is_status' => 'inactive',
+            'is_status' => 'active',
+            'can_receive_requests' => true,
+
         ]);
 
     } else {
@@ -1133,13 +1138,13 @@ public function deleteUsersByIds(array $ids): array
 {
     $userIds = DB::table('user_roles')
         ->whereIn('user_id', $ids)
-        ->where('role_id', 3)
+        ->where('role_id', 1)
         ->pluck('user_id')
         ->toArray();
 
     $protectedIds = DB::table('user_roles')
         ->whereIn('user_id', $ids)
-        ->whereIn('role_id', [1, 2])
+        ->whereIn('role_id', [4,3, 2])
         ->pluck('user_id')
         ->unique()
         ->toArray();

@@ -252,7 +252,12 @@ public function getVehicleMakesByType(string $type)
             'rejected'   => (int) $driver->rejected_rides,
         ],
 
-        'driver_status'    => $driver->status,
+        'driver_status' => [
+                'approval_status' => $driver->status, // pending | approved | suspended
+                'activity_status' => $driver->is_status, // active | inactive | banned
+                'can_receive_requests' => (bool) $driver->can_receive_requests, // true | false
+            ],
+            
         'documents_status' => $driver->documents_status,
     ];
         });
@@ -853,6 +858,8 @@ public function searchRiders(string $search)
     {
         return $this->AdminRepository->deleteUsersByIds($ids);
     }
+
+
     public function toggleRiderBlockStatus(int $userId): array
     {
         return $this->AdminRepository->toggleRiderBlock($userId);

@@ -602,14 +602,12 @@ public function getWalletDashboard(Request $request, int $driverId)
 
     $result = $this->adminService->deleteRider($request->ids);
 
-    // ❌ ولا واحد انحذف (كلهم Admin / Rider)
     if ($result['status'] === 'forbidden') {
         return response()->json([
             'message' => 'ليس لديك صلاحية لحذف هذا المستخدم'
         ], 403);
     }
 
-    // ⚠️ حذف جزئي
     if (!empty($result['protected_ids'])) {
         return response()->json([
             'message' => 'تم حذف بعض المستخدمين، والبعض الآخر لا تملك صلاحية لحذفه',
@@ -618,7 +616,6 @@ public function getWalletDashboard(Request $request, int $driverId)
         ]);
     }
 
-    // ✅ حذف كامل
     return response()->json([
         'message' => 'Users deleted successfully',
         'deleted_count' => $result['deleted_count'],

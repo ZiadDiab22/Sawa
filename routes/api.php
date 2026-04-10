@@ -55,6 +55,7 @@ Route::prefix('driver')->group(function () {
     Route::post('/register', [UserController::class, 'register']);
     Route::post('/login', [UserController::class, 'login']);
     Route::post('/resend-otp', [DriverController::class, 'resendOtp']);
+
 });
 
 //passenger
@@ -65,6 +66,7 @@ Route::middleware('auth:sanctum')->prefix('user')->group(function () {
 
 //Driver
 Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/show', [DriverProfileController::class, 'show']);
     Route::post('/update', [DriverProfileController::class, 'update']);
     Route::post('/store', [DriverProfileController::class, 'store']);
@@ -213,4 +215,3 @@ Route::prefix('admin')->group(function () {
 
     Route::get('show', [AboutUsController::class, 'show']);
     Route::get('/vehicle-makes/getAllMark', [AdminController::class, 'getAllVehicleMakes']);
-    Route::post('/logout', [AuthController::class, 'logout']);

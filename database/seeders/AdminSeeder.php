@@ -12,9 +12,9 @@ class AdminSeeder extends Seeder
     {
         $adminId = DB::table('users')->insertGetId([
             'name'       => 'Admin',
-            'email'      => 'Herotikibo@gmail.com',
+            'email'      => 'mohammad@taxisawa.com',
             'phone'      => '123',
-            'password'   => Hash::make('123123'),
+            'password'   => Hash::make('112233MOmo'),
             'gender'     => 'male'
         ]);
 
