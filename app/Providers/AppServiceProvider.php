@@ -8,8 +8,6 @@ use Kreait\Firebase\Factory;
 class AppServiceProvider extends ServiceProvider
 {
 
-use Kreait\Firebase\Factory;
-
 public function register()
 {
     $this->app->singleton('firebase.messaging', function () {
