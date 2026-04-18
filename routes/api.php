@@ -211,5 +211,5 @@ Route::prefix('admin')->group(function () {
         Route::get('/admin/driver-documents/pending', [DriverDocumentController::class, 'pendingDocuments'])->middleware(['check_admin']);
  });
 });
-
+    Route::get('show', [AboutUsController::class, 'show']);
     Route::get('/vehicle-makes/getAllMark', [AdminController::class, 'getAllVehicleMakes']);
