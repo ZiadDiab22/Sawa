@@ -127,7 +127,7 @@ class RideRequestController extends Controller
         $rideRequest = $service->cancel($id, Auth::id());
 
         $broadcastService->sendCancelToNearbyDrivers($rideRequest);
-    NotificationService::send(
+    $Notification=NotificationService::send(
         $rideRequest->user_id,
         'ride_request_cancelled',
         'تم إلغاء الطلب',
