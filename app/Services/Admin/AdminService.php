@@ -6,7 +6,6 @@ use App\Models\DriverDocument;
 use App\Models\User;
 use App\Repositories\Admin\AdminRepository;
 use App\Repositories\UserRepository;
-use App\Services\NotificationService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -257,7 +256,7 @@ public function getVehicleMakesByType(string $type)
                 'activity_status' => $driver->is_status, // active | inactive | banned
                 'can_receive_requests' => (bool) $driver->can_receive_requests, // true | false
             ],
-            
+
         'documents_status' => $driver->documents_status,
     ];
         });
@@ -288,28 +287,9 @@ public function approveDriver(int $driverId)
         throw new \Exception('User not found');
     }
 
-    $type  = 'driver_approved';
-    $title = 'تم قبول حسابك';
-    $body  = 'يمكنك الآن استقبال الرحلات.';
-
-    $firebaseResult = NotificationService::sendToUser(
-        $user,
-        $type,
-        $title,
-        $body,
-        [
-        'driver_id' => (string) $driver->user_id
-        ]
-    );
-
     return [
         'driver' => $driver,
-        'notification' => [
-            'type' => $type,
-            'title' => $title,
-            'body' => $body,
-            'firebase_result' => $firebaseResult
-        ]
+
     ];
 }
 public function suspendDriver(int $userId)
@@ -326,29 +306,10 @@ public function suspendDriver(int $userId)
         throw new \Exception('User not found');
     }
 
-    $type  = 'driver_suspended';
-    $title = 'تم إيقاف حسابك';
-    $body  = 'تم تعليق حسابك مؤقتاً، يرجى التواصل مع الإدارة.';
-
-    $firebaseResult = NotificationService::sendToUser(
-        $user,
-        $type,
-        $title,
-        $body,
-        [
-            'driver_id' => (string) $driver->id
-        ]
-    );
-
     return [
         'driver' => $driver,
-        'notification' => [
-            'type' => $type,
-            'title' => $title,
-            'body' => $body,
-            'firebase_result' => $firebaseResult
-        ]
-    ];
+
+   ];
 }
 
 public function listActiveDrivers()
@@ -454,28 +415,7 @@ public function toggleReceivingRequests(int $driverId, bool $status)
         throw new \Exception('User not found');
     }
 
-    $type = $status
-        ? 'driver_receiving_enabled'
-        : 'driver_receiving_disabled';
 
-    $title = $status
-        ? 'تم تفعيل استقبال الرحلات'
-        : 'تم إيقاف استقبال الرحلات';
-
-    $body = $status
-        ? 'يمكنك الآن استقبال طلبات جديدة من الركاب.'
-        : 'لن تصلك طلبات جديدة حتى إعادة التفعيل.';
-
-    $firebaseResult = NotificationService::sendToUser(
-        $user,
-        $type,
-        $title,
-        $body,
-        [
-            'driver_id' => (string) $driver->id,
-            'can_receive_requests' => $status ? '1' : '0',
-        ]
-    );
 
     return [
         'driver' => $driver,
@@ -570,38 +510,8 @@ public function toggleBannedDriver(int $userId)
     $user = User::findOrFail($userId);
 
     $isBanned = $driver->is_status === 'banned';
-
-    $type = $isBanned
-        ? 'driver_banned'
-        : 'driver_unbanned';
-
-    $title = $isBanned
-        ? 'تم حظر حسابك'
-        : 'تم فك الحظر عن حسابك';
-
-    $body = $isBanned
-        ? 'تم حظر حسابك من قبل الإدارة، لن تتمكن من استخدام التطبيق حالياً.'
-        : 'تم إعادة تفعيل حسابك، يمكنك الآن استخدام التطبيق.';
-
-    $firebaseResult = NotificationService::sendToUser(
-        $user,
-        $type,
-        $title,
-        $body,
-        [
-            'user_id' => (string) $user->id,
-            'driver_status' => $driver->is_status,
-        ]
-    );
-
     return [
         'driver' => $driver,
-        'notification' => [
-            'type' => $type,
-            'title' => $title,
-            'body' => $body,
-            'firebase_result' => $firebaseResult,
-        ],
     ];
 }public function driverDetails(int $userId): array
 {

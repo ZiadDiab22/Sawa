@@ -10,15 +10,15 @@ use App\Services\NotificationService;
 
 class RideBroadcastService
 {
-  public function __construct(
+public function __construct(
     private DriverLocationRepository $drivers
-  ) {}
+) {}
 
-  public function sendToNearbyDrivers($rideRequest)
-  {
+public function sendToNearbyDrivers($rideRequest)
+{
     $drivers = $this->drivers->nearbyActiveDrivers(
-      $rideRequest->pickup_lat,
-      $rideRequest->pickup_lng
+        $rideRequest->pickup_lat,
+        $rideRequest->pickup_lng
     );
 
     \Log::info('Nearby drivers count', [
@@ -27,18 +27,21 @@ class RideBroadcastService
 
     foreach ($drivers as $driverLocation) {
 
-        // 🔥 جلب User الحقيقي
-        $driver = User::find($driverLocation->Id);
-        if (!$driver) {
+        $driver = User::find($driverLocation->driver_id);
+
+        if (
+            !$driver ||
+            !$driver->driverProfile ||
+            $driver->driverProfile->status !== 'approved'
+        ) {
             continue;
         }
 
-        // 🔔 Firebase Notification
-        NotificationService::sendToUser(
+        NotificationService::send(
             $driver,
             'new_ride_request',
-            'طلب رحلة جديد',
-            'لديك طلب رحلة جديد بالقرب منك.',
+            'طلب رحلة جديد 🚗',
+            'لديك طلب رحلة جديد بالقرب منك',
             [
                 'ride_request_id' => (string) $rideRequest->id,
                 'price' => (string) $rideRequest->price,
@@ -47,7 +50,8 @@ class RideBroadcastService
         );
 
       broadcast(
-           new NewRideRequestCreated($rideRequest, $driver->id)      );
+        new NewRideRequestCreated($rideRequest, $driverLocation->driver_id)
+      );
     }
   }
 

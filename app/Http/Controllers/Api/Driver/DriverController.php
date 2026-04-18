@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Api\Driver;
 
+use App\Events\DriverActivated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\UserRegisterRequest;
 use App\Models\User;
 use App\Services\Auth\AuthService;
 use App\Services\Auth\UserService;
+use App\Services\NotificationService;
 use App\Services\User\Driver\DriverService;
-use App\Events\DriverActivated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -72,10 +73,25 @@ class DriverController extends Controller
     public function accept($id)
     {
         $driver = $this->driverService->accept($id);
-
+        $driver->load('ride.user');
+        $firebaseResult = NotificationService::send(
+        $driver->ride->user,
+        'ride_accepted',
+        'تم قبول رحلتك ',
+        'السائق في الطريق إليك',
+        [
+            'ride_id' => (string) $driver->ride->id
+        ]
+    );
         return response()->json([
             'message' => 'Done Successfully',
             'status' => $driver->status,
+            'notification' => [
+            'type' => 'ride_accepted',
+            'title' => 'تم قبول رحلتك ',
+            'body'  => 'السائق في الطريق إليك',
+            'firebase_result' => $firebaseResult
+        ]
         ]);
     }
 
@@ -87,7 +103,7 @@ class DriverController extends Controller
     ]);
 
     $user = User::where('phone', $request->phone)->first();
-    $status = $this->authService->sendOtp($user->phone); 
+    $status = $this->authService->sendOtp($user->phone);
 
     return response()->json([
         'status' => $status,

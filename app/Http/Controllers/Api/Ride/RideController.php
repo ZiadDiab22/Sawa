@@ -21,10 +21,24 @@ class RideController extends Controller
             $request->ride_id,
             Auth::id()
         );
+        $ride->load('user');
 
+        $Notification = NotificationService::send(
+            $ride->user->id,
+            'ride_started',
+            'بدأت الرحلة',
+            'السائق في طريقه إليك، الرحلة بدأت الآن.',
+            ['ride_id' => (string) $ride->id]
+        );
         return response()->json([
             'status' => true,
             'data' => $ride->makeHidden('code'),
+             'notification' => [
+                'type' => 'ride_started',
+                'title' => 'بدأت الرحلة',
+                'body' => 'السائق في طريقه إليك، الرحلة بدأت الآن.',
+                'firebase_result' => $Notification
+            ]
         ]);
     }
 
@@ -34,10 +48,24 @@ class RideController extends Controller
             $request->validated(),
             Auth::id()
         );
-
+        $ride->load('user');
+        $Notification = NotificationService::send(
+            $ride->user->id,
+            'ride_completed',
+            'انتهت الرحلة',
+            'تم الوصول إلى الوجهة بنجاح، شكراً لاستخدامك التطبيق.',
+            ['ride_id' => (string) $ride->id]
+        );
         return response()->json([
             'status' => true,
             'data' => $ride,
+            'notification' => [
+                'type' => 'ride_completed',
+                'title' => 'انتهت الرحلة',
+                'body' => 'تم الوصول إلى الوجهة بنجاح، شكراً لاستخدامك التطبيق.',
+                'firebase_result' => $Notification
+            ]
+
         ]);
     }
 
@@ -45,38 +73,39 @@ class RideController extends Controller
     {
         $ride = $service->userCancel($id, Auth::id());
 
-       $ride->load('driver');
+    $ride->load('driver');
 
-    $Notification = NotificationService::sendToUser(
-        $ride->driver, // السائق
-        'ride_cancelled_by_user',
-        'تم إلغاء الرحلة',
-        'قام الراكب بإلغاء الرحلة.',
-        [
-            'ride_id' => (string) $ride->id
-        ]
+    $Notification = NotificationService::send(
+    $ride->user->id,
+ // السائق
+            'ride_cancelled_by_user',
+            'تم إلغاء الرحلة',
+            'قام الراكب بإلغاء الرحلة.',
+            [
+                'ride_id' => (string) $ride->id
+            ]
     );
 
     return response()->json([
         'status' => true,
         'data' => $ride,
         'notification' => [
-            'type' => 'ride_cancelled_by_user',
-             'ride_id' => $ride->id,  
-            'title' => 'تم إلغاء الرحلة',
-            'body' => 'قام الراكب بإلغاء الرحلة.',
-            'firebase_result' => $Notification
-        ]
+                'type' => 'ride_cancelled_by_user',
+                'ride_id' => $ride->id,
+                'title' => 'تم إلغاء الرحلة',
+                'body' => 'قام الراكب بإلغاء الرحلة.',
+                'firebase_result' => $Notification
+            ]
     ]);
     }
 
     public function driverCancel(int $id, RideService $service)
     {
         $ride = $service->driverCancel($id, Auth::id());
-    $ride->load('user');
+        $ride->load('user');
 
-        $Notification = NotificationService::sendToUser(
-        $ride->user,
+        $Notification = NotificationService::send(
+        $ride->user->id,
         'ride_cancelled_by_driver',
         'تم إلغاء الرحلة',
         'قام السائق بإلغاء الرحلة.',

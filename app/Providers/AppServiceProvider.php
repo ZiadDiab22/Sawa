@@ -8,21 +8,21 @@ use Kreait\Firebase\Factory;
 class AppServiceProvider extends ServiceProvider
 {
 
-
 public function register()
 {
     $this->app->singleton('firebase.messaging', function () {
 
-        $credentials = env('FIREBASE_CREDENTIALS_JSON');
+        $credentialsPath = config('firebase.projects.app.credentials');
+
         if (!$credentialsPath || !file_exists($credentialsPath)) {
-            \Log::error('Firebase credentials file not found', [
+            \Log::error('Firebase credentials not found', [
                 'path' => $credentialsPath
             ]);
             return null;
         }
 
         return (new Factory)
-            ->withServiceAccount(json_decode($credentials, true)) 
+            ->withServiceAccount($credentialsPath)
             ->createMessaging();
     });
 }

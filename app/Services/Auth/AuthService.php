@@ -17,7 +17,7 @@ class AuthService
     $this->userRepository = $userRepository;
   }
 
-  
+
    public function sendOtp(string $phone, string $channel = 'email'): bool
 {
     $user = $this->userRepository->findByPhone($phone);
@@ -68,4 +68,16 @@ class AuthService
 
     return $user->createToken('auth_token')->plainTextToken;
   }
+
+  
+  public function ensureDriverIsApproved(User $user)
+{
+    $profile = $user->driverProfile;
+
+    if (!$profile || $profile->status !== 'approved') {
+        throw new \Exception('Driver is not approved yet');
+    }
+
+    return true;
+}
 }

@@ -143,6 +143,7 @@ Route::prefix('admin')->group(function () {
         //Admin
         Route::post('updateAboutUs', [AboutUsController::class, 'update']);
         Route::post('storeAboutUs', [AboutUsController::class, 'store']);
+        Route::get('show', [AboutUsController::class, 'show']);
         //test
         Route::get('/drivers/approved/count',[AdminController::class, 'approvedDriversCount']);
         Route::get('/drivers/pending/count',[AdminController::class, 'pendingDriversCount']);
@@ -211,7 +212,4 @@ Route::prefix('admin')->group(function () {
  });
 });
 
-
-
-    Route::get('show', [AboutUsController::class, 'show']);
     Route::get('/vehicle-makes/getAllMark', [AdminController::class, 'getAllVehicleMakes']);
