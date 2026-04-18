@@ -48,7 +48,7 @@ class RideBroadcastService
         );
 
       broadcast(
-        new NewRideRequestCreated($rideRequest, $driver->driver_id)
+        new NewRideRequestCreated($rideRequest, $driverLocation->driver_id)
       );
     }
   }
