@@ -38,7 +38,7 @@ public function sendToNearbyDrivers($rideRequest)
         }
 
         NotificationService::send(
-            $driver,
+            $driver->user->id,
             'new_ride_request',
             'طلب رحلة جديد 🚗',
             'لديك طلب رحلة جديد بالقرب منك',
