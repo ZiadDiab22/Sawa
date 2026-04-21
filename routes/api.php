@@ -114,7 +114,7 @@ Route::middleware(['auth:sanctum'])->prefix('account')->group(function () {
 Route::prefix('admin')->group(function () {
     Route::post('/login', [AdminController::class, 'login']);
          //profile
-        Route::middleware(['auth:sanctum'])->group(function () {
+        Route::middleware(['auth:sanctum', 'check_admin'])->group(function () {
         Route::post('/profile/update', [AdminController::class, 'updateProfile']);
         //city
         Route::post('/city/store', [CityController::class, 'store']);
