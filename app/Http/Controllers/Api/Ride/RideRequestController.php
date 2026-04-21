@@ -106,8 +106,7 @@ class RideRequestController extends Controller
         'ride_accepted',
         'تم قبول طلبك',
         'تم قبول طلبك من قبل أحد السائقين.',
-        ['ride_id' => (string) $response['ride']->id]
-    );
+       ['ride_request_id' => (string) $response['ride']->ride_request_id]    );
         $response['ride']->makeHidden('code');
         return response()->json([
         'status' => true,
