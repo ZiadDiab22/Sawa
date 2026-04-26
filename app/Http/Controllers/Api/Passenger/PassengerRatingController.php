@@ -68,4 +68,30 @@ class PassengerRatingController extends Controller
 
         return response()->json(['message' => 'Deleted successfully']);
     }
+
+    public function index(Request $request, $passengerId)
+{
+    $perPage = $request->get('per_page', 10);
+
+    $result = $this->service->getPassengerRatingsWithStats($passengerId, $perPage);
+
+    $ratings = $result['ratings'];
+
+    return response()->json([
+        'passenger_id' => (int) $passengerId,
+
+        'summary' => [
+            'average_rating' => round($result['average'], 1),
+            'total_reviews' => $ratings->total(),
+        ],
+
+        'reviews' => $ratings->items(),
+
+        'pagination' => [
+            'current_page' => $ratings->currentPage(),
+            'last_page' => $ratings->lastPage(),
+            'per_page' => $ratings->perPage(),
+        ]
+    ]);
+}
 }
