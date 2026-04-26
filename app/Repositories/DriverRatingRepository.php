@@ -36,4 +36,20 @@ class DriverRatingRepository
       ->whereDate('created_at', $date)
       ->avg('rating') ?? 0;
   }
+
+
+  public function getDriverRatingsWithStats(int $driverId, int $perPage = 10): array
+    {
+        $baseQuery = DriverRating::query()
+            ->where('driver_id', $driverId);
+
+        return [
+            'average' => (clone $baseQuery)->avg('rating') ?? 0,
+
+            'ratings' => $baseQuery
+                ->with('user:id,name')
+                ->latest()
+                ->paginate($perPage),
+        ];
+    }
 }

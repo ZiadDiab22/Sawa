@@ -60,4 +60,30 @@ class DriverRatingController extends Controller
 
         return response()->json(['message' => 'Deleted successfully']);
     }
+
+    public function index(Request $request, $driverId)
+{
+    $perPage = $request->get('per_page', 10);
+
+    $result = $this->service->getDriverRatingsWithStats($driverId, $perPage);
+
+    $ratings = $result['ratings'];
+
+    return response()->json([
+        'driver_id' => (int) $driverId,
+
+        'summary' => [
+            'average_rating' => round($result['average'], 1),
+            'total_reviews' => $ratings->total(),
+        ],
+
+        'reviews' => $ratings->items(),
+
+        'pagination' => [
+            'current_page' => $ratings->currentPage(),
+            'last_page' => $ratings->lastPage(),
+            'per_page' => $ratings->perPage(),
+        ]
+    ]);
+}
 }
