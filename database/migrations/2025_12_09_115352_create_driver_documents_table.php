@@ -17,6 +17,10 @@ return new class extends Migration
             $table->foreignId('driver_id')
                 ->constrained('driver_profiles')
                 ->cascadeOnDelete();
+                
+            $table->foreignId('user_id')
+            ->constrained('users')
+            ->cascadeOnDelete();
 
             $table->enum('type', ['license', 'driver_id', 'insurance']);
             $table->json('file_path');

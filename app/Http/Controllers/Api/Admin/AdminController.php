@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Profile\UpdateProfileRequest;
 use App\Services\Admin\AdminService;
 use App\Services\Auth\AuthService;
+use App\Services\NotificationService;
 use Dotenv\Exception\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -337,11 +338,11 @@ public function index()
             $this->adminService->listDrivers()
         );
     }
-public function getDriverVehicleInfo($id)
+public function getDriverVehicleInfo(int $driverId)
 {
     try {
 
-        $driver = $this->adminService->getDriverVehicleInfo((int) $id);
+        $driver = $this->adminService->getDriverVehicleInfo($driverId);
 
         return response()->json([
             'message' => 'Driver vehicle info',
@@ -355,16 +356,34 @@ public function getDriverVehicleInfo($id)
         ], 404);
     }
 }
-  public function approveDriver($id)
+
+    public function approveDriver($id)
 {
     try {
 
         $result = $this->adminService->approveDriver((int) $id);
+    $type  = 'driver_approved';
+    $title = 'تم قبول حسابك';
+    $body  = 'يمكنك الآن استقبال الرحلات.';
 
+    $firebaseResult = NotificationService::send(
+        $user->id,
+        $type,
+        $title,
+        $body,
+        [
+        'driver_id' => (string) $driver->user_id
+        ]
+    );
         return response()->json([
             'message' => 'Driver approved successfully',
             'driver' => $result['driver'],
-            'notification' => $result['notification']
+             'notification' => [
+            'type' => $type,
+            'title' => $title,
+            'body' => $body,
+            'firebase_result' => $firebaseResult
+        ]
         ]);
 
     } catch (\Exception $e) {
@@ -374,16 +393,33 @@ public function getDriverVehicleInfo($id)
         ], 400);
     }
 }
-public function suspendDriver($id)
+public function suspendDriver($userId)
 {
     try {
 
-        $result = $this->adminService->suspendDriver((int) $id);
+        $result = $this->adminService->suspendDriver((int) $userId);
+    $type  = 'driver_suspended';
+    $title = 'تم إيقاف حسابك';
+    $body  = 'تم تعليق حسابك مؤقتاً، يرجى التواصل مع الإدارة.';
 
+    $firebaseResult = NotificationService::send(
+        $user->id,
+        $type,
+        $title,
+        $body,
+        [
+            'driver_id' => (string) $driver->id
+        ]
+    );
         return response()->json([
             'message' => 'Driver suspended successfully',
             'driver' => $result['driver'],
-            'notification' => $result['notification']
+            'notification' => [
+            'type' => $type,
+            'title' => $title,
+            'body' => $body,
+            'firebase_result' => $firebaseResult
+        ]
         ]);
 
     } catch (\Exception $e) {
@@ -427,6 +463,28 @@ public function listPendingDrivers()
             $driverId,
             $validated['can_receive_requests']
         );
+$type = $status
+        ? 'driver_receiving_enabled'
+        : 'driver_receiving_disabled';
+
+    $title = $status
+        ? 'تم تفعيل استقبال الرحلات'
+        : 'تم إيقاف استقبال الرحلات';
+
+    $body = $status
+        ? 'يمكنك الآن استقبال طلبات جديدة من الركاب.'
+        : 'لن تصلك طلبات جديدة حتى إعادة التفعيل.';
+
+    $firebaseResult = NotificationService::send(
+        $user->id,
+        $type,
+        $title,
+        $body,
+        [
+            'driver_id' => (string) $driver->id,
+            'can_receive_requests' => $status ? '1' : '0',
+        ]
+    );
 
         return response()->json([
             'message' => 'Driver receiving requests status updated successfully',
@@ -434,8 +492,12 @@ public function listPendingDrivers()
                 'driver_id' => $result['driver']->id,
                 'can_receive_requests' => $result['driver']->can_receive_requests,
             ],
-            'notification' => $result['notification'],
-        ]);
+            'notification' => [
+            'type' => $type,
+            'title' => $title,
+            'body' => $body,
+            'firebase_result' => $firebaseResult,
+        ],        ]);
 
     } catch (\Exception $e) {
 
@@ -458,52 +520,119 @@ public function listPendingDrivers()
 }
 
 
-public function documentsByDriver(int $driverId)
+public function documentsByDriver(int $userId)
 {
     return response()->json([
-        'driver_id' => $driverId,
+        'user_id' => $userId,
         'documents' => $this->adminService
-            ->getDocumentsByDriverId($driverId)
+            ->getDocumentsByDriverId($userId)
     ]);
 }
 
 public function approveDocument(int $id)
 {
-    $doc = $this->adminService
-        ->approveDocumentByAdmin($id);
+    try {
 
-    return response()->json([
-        'message' => 'Document approved successfully',
-        'data' => $doc
-    ]);
+        $doc = $this->adminService
+            ->approveDocumentByAdmin($id);
+        $firebaseResult = NotificationService::send(
+            $doc->user_id,
+            'document_approved',
+            'تم قبول المستند ',
+            'تمت الموافقة على مستندك بنجاح، يمكنك الآن متابعة العمل.',
+            [
+                'document_id' => (string) $doc->id
+            ]
+        );
+
+        return response()->json([
+            'message' => 'Document approved successfully',
+            'data' => $doc,
+            'notification' => [
+            'type' => 'document_approved',
+            'title' =>'تم قبول المستند ',
+            'body' =>  'تمت الموافقة على مستندك بنجاح، يمكنك الآن متابعة العمل.',
+
+            'firebase_result' => $firebaseResult,]
+        ]);
+
+    } catch (\Exception $e) {
+
+        return response()->json([
+            'message' => $e->getMessage()
+        ], 400);
+
+    }
 }
 
 public function rejectDocument(int $id)
 {
     $doc = $this->adminService
         ->rejectDocumentByAdmin($id);
-
+        $firebaseResult= NotificationService::send(
+        $doc->user_id,
+        'document_rejected',
+        'تم رفض المستند ',
+        'تم رفض المستند الخاص بك، يرجى التحقق وإعادة الرفع.',
+        [
+            'document_id' => (string) $doc->id
+        ]
+    );
     return response()->json([
         'message' => 'Document rejected successfully',
-        'data' => $doc
+        'data' => $doc,
+        'notification' => [
+            'type' => 'document_rejected',
+            'title' =>'تم رفض المستند ',
+            'body' =>'تم رفض المستند الخاص بك، يرجى التحقق وإعادة الرفع.',
+
+
+            'firebase_result' => $firebaseResult,]
     ]);
 }
 
-public function toggleBannedDriver(int $id)
+public function toggleBannedDriver(int $userId)
 {
     try {
 
-        $result = $this->adminService->toggleBannedDriver($id);
+        $result = $this->adminService->toggleBannedDriver($userId);
+    $type = $isBanned
+            ? 'driver_banned'
+            : 'driver_unbanned';
+
+        $title = $isBanned
+            ? 'تم حظر حسابك'
+            : 'تم فك الحظر عن حسابك';
+
+        $body = $isBanned
+            ? 'تم حظر حسابك من قبل الإدارة، لن تتمكن من استخدام التطبيق حالياً.'
+            : 'تم إعادة تفعيل حسابك، يمكنك الآن استخدام التطبيق.';
+
+        $firebaseResult = NotificationService::send(
+            $user->id,
+            $type,
+            $title,
+            $body,
+            [
+                'user_id' => (string) $user->id,
+                'driver_status' => $driver->is_status,
+            ]
+        );
 
         return response()->json([
             'message' => 'Driver ban status updated',
             'driver' => [
-                'driver_id' => $result['driver']->id,
+                'user_id' => $result['driver']->user_id,
+                'driver_profile_id' => $result['driver']->id,
                 'is_status' => $result['driver']->is_status,
                 'can_receive_requests' => $result['driver']->can_receive_requests,
             ],
-            'notification' => $result['notification'],
-        ]);
+            'notification' => [
+            'type' => $type,
+            'title' => $title,
+            'body' => $body,
+            'firebase_result' => $firebaseResult,
+        ],        ]);
 
     } catch (\Exception $e) {
 
@@ -513,19 +642,19 @@ public function toggleBannedDriver(int $id)
     }
 }
 
-    public function showDriver(int $driverProfileId)
-    {
-        return response()->json([
-            'message' => 'Driver details retrieved successfully',
-            'data' => $this->adminService->driverDetails($driverProfileId)
-        ]);
-    }
+    public function showDriver(int $userId)
+{
+    return response()->json([
+        'message' => 'Driver details retrieved successfully',
+        'data' => $this->adminService->driverDetails($userId)
+    ]);
+}
 
-     public function driverRides(Request $request, int $driverProfileId)
+    public function driverRides(Request $request, int $driverUserId)
 {
     $status = $request->query('status');
 
-    $rides = $this->adminService->driverRides($driverProfileId, $status);
+    $rides = $this->adminService->driverRides($driverUserId, $status);
 
     return response()->json($rides);
 }
@@ -591,14 +720,12 @@ public function getWalletDashboard(Request $request, int $driverId)
 
     $result = $this->adminService->deleteRider($request->ids);
 
-    // ❌ ولا واحد انحذف (كلهم Admin / Rider)
     if ($result['status'] === 'forbidden') {
         return response()->json([
             'message' => 'ليس لديك صلاحية لحذف هذا المستخدم'
         ], 403);
     }
 
-    // ⚠️ حذف جزئي
     if (!empty($result['protected_ids'])) {
         return response()->json([
             'message' => 'تم حذف بعض المستخدمين، والبعض الآخر لا تملك صلاحية لحذفه',
@@ -607,7 +734,6 @@ public function getWalletDashboard(Request $request, int $driverId)
         ]);
     }
 
-    // ✅ حذف كامل
     return response()->json([
         'message' => 'Users deleted successfully',
         'deleted_count' => $result['deleted_count'],
@@ -623,12 +749,35 @@ public function toggleRiderBlock(int $id)
             'message' => 'لا تملك صلاحية حظر هذا المستخدم'
         ], 403);
     }
-
+        $firebaseResult= NotificationService::send(
+        $id,
+        $result['blocked'] ? 'rider_blocked' : 'rider_unblocked',
+        $result['blocked'] ? 'تم حظر حسابك ' : 'تم رفع الحظر عن حسابك ',
+        $result['blocked']
+            ? 'تم حظر حسابك من قبل الإدارة، يرجى التواصل مع الدعم.'
+            : 'تم رفع الحظر عن حسابك، يمكنك استخدام التطبيق الآن.',
+        [
+            'user_id' => (string) $id
+        ]
+    );
     return response()->json([
         'message' => $result['blocked']
             ? 'تم حظر الراكب'
             : 'تم رفع الحظر عن الراكب',
         'blocked' => $result['blocked'],
+        'notification' => [
+        'type' => $result['blocked'] ? 'rider_blocked' : 'rider_unblocked',
+
+        'title' => $result['blocked']
+            ? 'تم حظر حسابك '
+            : 'تم رفع الحظر عن حسابك ',
+
+        'body' => $result['blocked']
+            ? 'تم حظر حسابك من قبل الإدارة، يرجى التواصل مع الدعم.'
+            : 'تم رفع الحظر عن حسابك، يمكنك استخدام التطبيق الآن.',
+
+        'firebase_result' => $firebaseResult,
+    ]
     ]);
 }
 

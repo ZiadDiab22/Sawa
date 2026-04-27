@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Api\Driver;
 
-use App\Models\WalletTransaction;
-use Illuminate\Http\Request;
-use App\Models\DriverProfile;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
+use App\Models\DriverProfile;
+use App\Models\WalletTransaction;
+use App\Services\NotificationService;
 use App\Services\User\Driver\DriverWalletService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DriverWalletController extends Controller
 {
@@ -31,7 +32,26 @@ class DriverWalletController extends Controller
             (float)$request->amount
         );
 
-        return response()->json(['status' => true, 'message' => $profile]);
+
+    $driver = \App\Models\User::find($id);
+
+    $firebaseResult = NotificationService::send(
+        $driver->id,
+        'wallet_topup',
+        'تم إضافة رصيد 💰',
+        'تم إضافة ' . $request->amount . ' إلى محفظتك',
+        [
+            'amount' => (string) $request->amount
+        ]
+    );
+
+        return response()->json(['status' => true, 'message' => $profile  ,
+            'notification' => [
+            'type' => 'wallet_topup',
+            'title' => 'تم إضافة رصيد 💰',
+            'body' => 'تم إضافة ' . $request->amount . ' إلى محفظتك',
+            'firebase_result' => $firebaseResult
+        ]]);
     }
 
     public function showWallet()

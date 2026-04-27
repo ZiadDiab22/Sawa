@@ -6,7 +6,6 @@ use App\Models\DriverDocument;
 use App\Models\User;
 use App\Repositories\Admin\AdminRepository;
 use App\Repositories\UserRepository;
-use App\Services\NotificationService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -224,31 +223,42 @@ public function getVehicleMakesByType(string $type)
         $drivers = $this->AdminRepository->getDriversList();
 
         return $drivers->through(function ($driver) {
-            return [
-                'id' => $driver->id,
-                'document_ids' => $driver->documents
-                ->pluck('id')
-                ->values(),
-                'driver' => [
-                    'name'  => $driver->user->name,
-                    'email' => $driver->user->email,
-                    'phone' => $driver->user->phone,
-                ],
-                'vehicle' => [
-                    'make'         => $driver->vehicleMake?->name,
-                    'model'        => $driver->vehicle_model,
-                    'plate_number' => $driver->vehicle_plate_number,
-                    'year'         => $driver->vehicle_year,
-                ],
-                'rides' => [
-                    'live'       => (int) $driver->live_rides,
-                    'completed'  => (int) $driver->completed_rides,
-                    'cancelled'  => (int) $driver->cancelled_rides,
-                    'rejected'   => (int) $driver->rejected_rides,
-                ],
-                'driver_status'    => $driver->status,
-                'documents_status' => $driver->documents_status,
-            ];
+        return [
+        'driver_id' => $driver->user_id,
+        'driver_profile_id' => $driver->id,
+
+        'document_ids' => $driver->documents
+            ->pluck('id')
+            ->values(),
+
+        'driver' => [
+            'name'  => $driver->user->name,
+            'email' => $driver->user->email,
+            'phone' => $driver->user->phone,
+        ],
+
+        'vehicle' => [
+            'make'         => $driver->vehicleMake?->name,
+            'model'        => $driver->vehicle_model,
+            'plate_number' => $driver->vehicle_plate_number,
+            'year'         => $driver->vehicle_year,
+        ],
+
+        'rides' => [
+            'live'       => (int) $driver->live_rides,
+            'completed'  => (int) $driver->completed_rides,
+            'cancelled'  => (int) $driver->cancelled_rides,
+            'rejected'   => (int) $driver->rejected_rides,
+        ],
+
+        'driver_status' => [
+                'approval_status' => $driver->status, // pending | approved | suspended
+                'activity_status' => $driver->is_status, // active | inactive | banned
+                'can_receive_requests' => (bool) $driver->can_receive_requests, // true | false
+            ],
+
+        'documents_status' => $driver->documents_status,
+    ];
         });
     }
 
@@ -262,6 +272,7 @@ public function getVehicleMakesByType(string $type)
 
     return $driver;
 }
+
 public function approveDriver(int $driverId)
 {
     $driver = $this->AdminRepository->approveDriver($driverId);
@@ -276,68 +287,29 @@ public function approveDriver(int $driverId)
         throw new \Exception('User not found');
     }
 
-    $type  = 'driver_approved';
-    $title = 'تم قبول حسابك';
-    $body  = 'يمكنك الآن استقبال الرحلات.';
-
-    $firebaseResult = NotificationService::sendToUser(
-        $user,
-        $type,
-        $title,
-        $body,
-        [
-            'driver_id' => (string) $driver->id
-        ]
-    );
-
     return [
         'driver' => $driver,
-        'notification' => [
-            'type' => $type,
-            'title' => $title,
-            'body' => $body,
-            'firebase_result' => $firebaseResult
-        ]
+
     ];
 }
-
-public function suspendDriver(int $driverId)
+public function suspendDriver(int $userId)
 {
-    $driver = $this->AdminRepository->suspendDriver($driverId);
+    $driver = $this->AdminRepository->suspendDriver($userId);
 
     if (!$driver) {
         throw new \Exception('Driver not found or already suspended');
     }
 
-    $user = User::find($driver->user_id);
+    $user = User::find($userId);
 
     if (!$user) {
         throw new \Exception('User not found');
     }
 
-    $type  = 'driver_suspended';
-    $title = 'تم إيقاف حسابك';
-    $body  = 'تم تعليق حسابك مؤقتاً، يرجى التواصل مع الإدارة.';
-
-    $firebaseResult = NotificationService::sendToUser(
-        $user,
-        $type,
-        $title,
-        $body,
-        [
-            'driver_id' => (string) $driver->id
-        ]
-    );
-
     return [
         'driver' => $driver,
-        'notification' => [
-            'type' => $type,
-            'title' => $title,
-            'body' => $body,
-            'firebase_result' => $firebaseResult
-        ]
-    ];
+
+   ];
 }
 
 public function listActiveDrivers()
@@ -443,28 +415,7 @@ public function toggleReceivingRequests(int $driverId, bool $status)
         throw new \Exception('User not found');
     }
 
-    $type = $status
-        ? 'driver_receiving_enabled'
-        : 'driver_receiving_disabled';
 
-    $title = $status
-        ? 'تم تفعيل استقبال الرحلات'
-        : 'تم إيقاف استقبال الرحلات';
-
-    $body = $status
-        ? 'يمكنك الآن استقبال طلبات جديدة من الركاب.'
-        : 'لن تصلك طلبات جديدة حتى إعادة التفعيل.';
-
-    $firebaseResult = NotificationService::sendToUser(
-        $user,
-        $type,
-        $title,
-        $body,
-        [
-            'driver_id' => (string) $driver->id,
-            'can_receive_requests' => $status ? '1' : '0',
-        ]
-    );
 
     return [
         'driver' => $driver,
@@ -483,8 +434,9 @@ public function toggleReceivingRequests(int $driverId, bool $status)
 
     return $drivers->through(function ($driver) {
         return [
-            'id' => $driver->id,
-            'driver' => [
+                'id' => $driver->id,
+                'user_id' => $driver->user_id,
+                'driver' => [
                 'name'  => $driver->user->name,
                 'email' => $driver->user->email,
                 'phone' => $driver->user->phone,
@@ -503,10 +455,10 @@ public function toggleReceivingRequests(int $driverId, bool $status)
         ];
     });
 }
-
-public function getDocumentsByDriverId(int $driverId): array
+//وصلت لهون
+public function getDocumentsByDriverId(int $userId): array
 {
-    $docs = $this->AdminRepository->findByDriverProfileId($driverId);
+    $docs = $this->AdminRepository->findByDriverProfileId($userId);
 
     return $docs->map(function ($doc) {
         return [
@@ -540,7 +492,7 @@ private function formatDocumentResponse(DriverDocument $doc): array
 {
     return [
         'id' => $doc->id,
-        'driver_id' => $doc->driver_id,
+        'user_id' => $doc->user_id,
         'type' => $doc->type,
         'file_path' => $doc->file_path
             ? array_map(fn ($f) => asset('storage/' . $f), $doc->file_path)
@@ -551,108 +503,71 @@ private function formatDocumentResponse(DriverDocument $doc): array
         'updated_at' => $doc->updated_at,
     ];
 }
-
-public function toggleBannedDriver(int $driverId)
+public function toggleBannedDriver(int $userId)
 {
-    $driver = $this->AdminRepository->toggleBannedDriver($driverId);
+    $driver = $this->AdminRepository->toggleBannedDriver($userId);
 
-    $user = User::find($driver->user_id);
+    $user = User::findOrFail($userId);
 
-    if (!$user) {
-        throw new \Exception('User not found');
-    }
-
-    // تحديد نوع العملية
     $isBanned = $driver->is_status === 'banned';
-
-    $type = $isBanned
-        ? 'driver_banned'
-        : 'driver_unbanned';
-
-    $title = $isBanned
-        ? 'تم حظر حسابك'
-        : 'تم فك الحظر عن حسابك';
-
-    $body = $isBanned
-        ? 'تم حظر حسابك من قبل الإدارة، لن تتمكن من استخدام التطبيق حالياً.'
-        : 'تم إعادة تفعيل حسابك، يمكنك الآن استخدام التطبيق.';
-
-    $firebaseResult = NotificationService::sendToUser(
-        $user,
-        $type,
-        $title,
-        $body,
-        [
-            'driver_id' => (string) $driver->id,
-            'is_status' => $driver->is_status,
-        ]
-    );
-
     return [
         'driver' => $driver,
-        'notification' => [
-            'type' => $type,
-            'title' => $title,
-            'body' => $body,
-            'firebase_result' => $firebaseResult,
+    ];
+}public function driverDetails(int $userId): array
+{
+    $driver = $this->AdminRepository->getDriverProfileByUser($userId);
+
+    $user = $driver->user;
+
+    $rideStats = $this->AdminRepository->rideStats($user->id);
+    $earnings  = $this->AdminRepository->earnings($user->id);
+
+    $docs = $user->documents;
+
+    $documentApproved = $docs
+        ->whereIn('type', ['license', 'driver_id'])
+        ->every(fn($d) => $d->status === 'approved');
+
+    $vehicleDocApproved = $docs
+        ->where('type', 'insurance')
+        ->every(fn($d) => $d->status === 'approved');
+
+    return [
+        'driver' => [
+            'driver_profile_id' => $driver->id,
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'profile_image' => $user->profile_image
+                ? asset('storage/'.$user->profile_image)
+                : null,
+            'can_receive_requests' => $driver->can_receive_requests,
+            'joining_date' => $user->created_at,
+        ],
+
+        'ride_information' => $rideStats,
+
+        'earnings' => $earnings,
+
+        'verification_status' => [
+            'document_verification' => $documentApproved,
+            'vehicle_document_verification' => $vehicleDocApproved,
+            'is_driver_active' => $driver->is_status === 'active',
+        ],
+
+        'vehicle_information' => [
+            'make' => $driver->vehicleMake?->name,
+            'model' => $driver->vehicle_model,
+            'vehicle_number' => $driver->vehicle_plate_number,
+            'year' => $driver->vehicle_year,
+            'color' => $driver->vehicle_color,
         ],
     ];
 }
-    public function driverDetails(int $driverProfileId): array
-    {
-        $driver = $this->AdminRepository->getDriverProfile($driverProfileId);
-        $user = $driver->user;
-
-        $rideStats = $this->AdminRepository->rideStats($user->id);
-        $earnings  = $this->AdminRepository->earnings($user->id);
-
-        $docs = $driver->documents;
-
-        $documentApproved = $docs
-            ->whereIn('type', ['license', 'driver_id'])
-            ->every(fn($d) => $d->status === 'approved');
-
-        $vehicleDocApproved = $docs
-            ->where('type', 'insurance')
-            ->every(fn($d) => $d->status === 'approved');
-
-        return [
-            'driver' => [
-                'id' => $driver->id,
-                'user_id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'profile_image' => $user->profile_image
-                    ? asset('storage/'.$user->profile_image)
-                    : null,
-                'can_receive_requests' => $driver->can_receive_requests,
-                'joining_date' => $user->created_at,
-            ],
-
-            'ride_information' => $rideStats,
-
-            'earnings' => $earnings,
-
-            'verification_status' => [
-                'document_verification' => $documentApproved,
-                'vehicle_document_verification' => $vehicleDocApproved,
-                'is_driver_active' => $driver->is_status === 'active',
-            ],
-
-            'vehicle_information' => [
-                'make' => $driver->vehicleMake?->name,
-                'model' => $driver->vehicle_model,
-                'vehicle_number' => $driver->vehicle_plate_number,
-                'year' => $driver->vehicle_year,
-                'color' => $driver->vehicle_color,
-            ],
-        ];
-    }
-
-public function driverRides(int $driverProfileId, ?string $status = null): array
+public function driverRides(int $driverUserId, ?string $status = null): array
 {
-    $rides = $this->AdminRepository->getDriverRides($driverProfileId, $status);
+    $rides = $this->AdminRepository->getDriverRides($driverUserId, $status);
 
     return [
         'data' => collect($rides->items())->map(function ($ride) {
@@ -853,6 +768,8 @@ public function searchRiders(string $search)
     {
         return $this->AdminRepository->deleteUsersByIds($ids);
     }
+
+
     public function toggleRiderBlockStatus(int $userId): array
     {
         return $this->AdminRepository->toggleRiderBlock($userId);

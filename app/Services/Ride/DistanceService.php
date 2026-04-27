@@ -162,22 +162,22 @@ class DistanceService
 
             $user = $ride->user;
 
-$notificationResult = NotificationService::sendToUser(
-    $user,
-    'ride_accepted',
-    'السائق قبل رحلتك',
-    'تم قبول رحلتك من قبل السائق، سيتم التواصل معك قريباً.',
-    ['ride_request_id' => (string) $ride->ride_request_id]
-);
+// $notificationResult = NotificationService::sendToUser(
+//     $user,
+//     'ride_accepted',
+//     'السائق قبل رحلتك',
+//     'تم قبول رحلتك من قبل السائق، سيتم التواصل معك قريباً.',
+//     ['ride_request_id' => (string) $ride->ride_request_id]
+// );
 
 $response = [
     'ride' => $ride,
-    'notification' => [
-        'type' => 'ride_accepted',
-        'title' => 'السائق قبل رحلتك',
-        'body'  => 'تم قبول رحلتك من قبل السائق، سيتم التواصل معك قريباً.',
-        'firebase_result' => $notificationResult
-    ]
+    // 'notification' => [
+    //     'type' => 'ride_accepted',
+    //     'title' => 'السائق قبل رحلتك',
+    //     'body'  => 'تم قبول رحلتك من قبل السائق، سيتم التواصل معك قريباً.',
+    //     'firebase_result' => $notificationResult
+    // ]
 ];
 
 return $response;

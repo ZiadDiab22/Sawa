@@ -32,15 +32,14 @@ class RideRequestController extends Controller
         ]);
 
 
-        $user = $rideRequest->user;
-
-    $Notification= NotificationService::sendToUser(
-    $user,
-    'ride_created', // نوع الإشعار
-    'طلبك تم تسجيله', // عنوان الإشعار
-    'تم استلام طلبك بنجاح وسيتم التواصل معك حال وجود سائق متاح.', // نص الإشعار
-    ['ride_request_id' => (string) $rideRequest->id] // بيانات إضافية
-);
+    $user = $rideRequest->user;
+    $Notification = NotificationService::send(
+        $user->id,
+        'ride_created',
+        'طلبك تم تسجيله',
+        'تم استلام طلبك بنجاح وسيتم البحث عن سائق.',
+        ['ride_request_id' => (string) $rideRequest->id]
+    );
 
         $broadcastService->sendToNearbyDrivers($rideRequest);
 
@@ -55,7 +54,7 @@ class RideRequestController extends Controller
         ]
     ], 201);
     }
-    //    //
+
 
 
 
@@ -100,11 +99,24 @@ class RideRequestController extends Controller
             $request->ride_request_id,
             Auth::id()
         );
+    $userId = $response['ride']->user_id;
 
+    $Notification = NotificationService::send(
+        $userId,
+        'ride_accepted',
+        'تم قبول طلبك',
+        'تم قبول طلبك من قبل أحد السائقين.',
+       ['ride_request_id' => (string) $response['ride']->ride_request_id]    );
         $response['ride']->makeHidden('code');
         return response()->json([
         'status' => true,
-        'data' => $response
+        'data' => $response,
+        'notification' => [
+            'type' => 'ride_Accept',
+            'title' => '  تم قبول طلبك ',
+            'body'  => 'تم قبول طلبك بنجاح وسيتم التواصل معك من قبل السائق   .',
+            'firebase_result' => $Notification
+        ]
 ], 201);
     }
 
@@ -114,10 +126,22 @@ class RideRequestController extends Controller
         $rideRequest = $service->cancel($id, Auth::id());
 
         $broadcastService->sendCancelToNearbyDrivers($rideRequest);
-
+    $Notification=NotificationService::send(
+        $rideRequest->user_id,
+        'ride_request_cancelled',
+        'تم إلغاء الطلب',
+        'تم إلغاء طلب الرحلة الخاص بك.',
+        ['ride_request_id' => (string) $rideRequest->id]
+    );
         return response()->json([
             'status' => true,
             'data' => $rideRequest,
+            'notification' => [
+            'type' => 'ride_request_cancelled',
+            'title' => 'تم إلغاء الطلب',
+            'body'  => 'تم إلغاء طلب الرحلة الخاص بك.',
+            'firebase_result' => $Notification
+        ]
         ]);
     }
 

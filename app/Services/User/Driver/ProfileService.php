@@ -91,15 +91,12 @@ class ProfileService
         return $data;
     }
 
-    /* =========================
-        RESPONSE FORMAT
-    ========================== */
+
   private function formatResponse($profile): array
 {
     return [
         'id' => $profile->id,
 
-        // القيم تُجلب من جدول users عبر التوكن
         'name'  => $profile->user->name,
         'email' => $profile->user->email,
         'phone' => $profile->user->phone,
@@ -136,10 +133,6 @@ class ProfileService
     ];
 }
 
-
-/* =========================
-    BASIC DRIVER INFO
-========================= */
 public function getBasicInfo(int $userId): array
 {
     $profile = $this->DriverRepository->findByUserId($userId);
@@ -158,29 +151,24 @@ public function getBasicInfo(int $userId): array
 }
 
 
-/* =========================
-    UPDATE BASIC INFO + IMAGE
-========================= */
+
 public function updateBasicInfo(int $userId, array $data): array
 {
     $user = User::findOrFail($userId);
     $profile = $this->DriverRepository->findByUserId($userId);
 
-    // تحديث بيانات المستخدم
     $user->update([
         'name'  => $data['name']  ?? $user->name,
         'email' => $data['email'] ?? $user->email,
         'phone' => $data['phone'] ?? $user->phone,
     ]);
 
-    // تحديث الجنس (بروفايل السائق)
     if (isset($data['gender'])) {
         $profile->update([
             'gender' => $data['gender']
         ]);
     }
 
-    // تحديث الصورة الشخصية (اختياري)
     if (isset($data['profile_image']) && $data['profile_image'] instanceof UploadedFile) {
 
         if ($user->profile_image) {
