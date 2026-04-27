@@ -30,15 +30,18 @@ class AdminRepository
             ->where('status', 'pending')
             ->count();
 
-        $passengersCount = DB::table('users')
-            ->join('user_roles', 'users.id', '=', 'user_roles.user_id')
-            ->join('roles', 'roles.id', '=', 'user_roles.role_id')
-            ->where('roles.name', 'user')
-            ->count();
+        $userRoleId = DB::table('roles')
+        ->where('name', 'user')
+        ->value('id');
 
-        $totalRidesCount = DB::table('ride_requests')->count();
+        $passengersCount = DB::table('user_roles')
+        ->where('role_id', $userRoleId)
+        ->distinct('user_id')
+        ->count('user_id');
 
-        $completedRidesCount = DB::table('ride_requests')
+        $totalRidesCount = DB::table('rides')->count();
+
+        $completedRidesCount = DB::table('rides')
             ->where('status', 'completed')
             ->count();
 
@@ -57,8 +60,8 @@ class AdminRepository
 
         // أرباح الشركة اليومية (نسبة الشركة فقط)
         $companyDailyRevenue = DB::table('company_commissions')
-            ->whereDate('created_at', $today)
-            ->sum('amount');
+        ->where('created_at', '>=', now()->subDay())
+        ->sum('amount');
 
         // آخر 5 رحلات مكتملة
         $lastFiveRides = DB::table('rides')
@@ -864,7 +867,7 @@ public function toggleBannedDriver(int $userId): DriverProfile
     if ($driver->status !== 'approved') {
         throw new \Exception('Driver is not approved');
     }
-    
+
     if ($driver->is_status === 'banned') {
         // فك الحظر
         $driver->update([
