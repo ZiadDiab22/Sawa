@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Ride;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Ride\CompleteRideRequest;
+use App\Models\DriverProfile;
 use App\Services\NotificationService;
 use App\Services\Ride\RideService;
 use Illuminate\Http\Request;
@@ -49,6 +50,8 @@ class RideController extends Controller
             Auth::id()
         );
         $ride->load('user');
+        $ride->driver_status = DriverProfile::where('user_id', Auth::id())->value('status');
+
         $Notification = NotificationService::send(
             $ride->user->id,
             'ride_completed',
