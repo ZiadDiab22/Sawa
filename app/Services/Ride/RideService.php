@@ -9,11 +9,13 @@ use App\Events\RideStarted;
 use App\Models\DriverProfile;
 use App\Models\Ride;
 use App\Models\Setting;
+use App\Models\User;
 use App\Models\WalletTransaction;
 use App\Repositories\DriverRepository;
 use App\Repositories\Ride\ProfitRepository;
 use App\Repositories\Ride\RideRepository;
 use App\Repositories\Ride\RideStatusHistoryRepository;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 
 class RideService
@@ -118,6 +120,17 @@ class RideService
 
             if ($wallet <= -(20 * $LE)) {
                 $this->drivers->updateStatus($driverId, 'suspended');
+                $driver = User::find($driverId);
+                $firebaseResult = NotificationService::send(
+                $driver->id,
+                'driver_suspended_debt',
+                'تم تعليق حسابك ⚠️',
+                'لقد تجاوزت الحد المسموح به للدين. تم تعليق حسابك حتى تسديد المبلغ المستحق.',
+        [
+            'debt_limit' => (string)(20 * $LE),
+            'current_wallet' => (string)$wallet
+        ]
+    );
             }
 
             WalletTransaction::query()->create([
@@ -166,7 +179,7 @@ class RideService
 
             return $ride->refresh();
         });
-    }   
+    }
 
     public function driverCancel(int $id, int $driverId)
     {

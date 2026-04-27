@@ -36,7 +36,7 @@ class DriverWalletController extends Controller
     $driver = \App\Models\User::find($id);
 
     $firebaseResult = NotificationService::send(
-        $driver,
+        $driver->id,
         'wallet_topup',
         'تم إضافة رصيد 💰',
         'تم إضافة ' . $request->amount . ' إلى محفظتك',

@@ -24,4 +24,9 @@ class DriverRatingService
   {
     return $this->repository->delete($id);
   }
+
+   public function getDriverRatingsWithStats(int $driverId, int $perPage = 10)
+    {
+        return $this->repository->getDriverRatingsWithStats($driverId, $perPage);
+    }
 }

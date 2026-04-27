@@ -29,4 +29,19 @@ class PassengerRatingRepository
     {
         return PassengerRating::query()->findOrFail($id);
     }
+
+     public function getPassengerRatingsWithStats(int $passengerId, int $perPage = 10): array
+    {
+        $baseQuery = PassengerRating::query()
+            ->where('user_id', $passengerId);
+
+        return [
+            'average' => (clone $baseQuery)->avg('rating') ?? 0,
+
+            'ratings' => $baseQuery
+                ->with('driver:id,name')
+                ->latest()
+                ->paginate($perPage),
+        ];
+    }
 }
