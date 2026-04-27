@@ -69,11 +69,7 @@ class PassengerRatingController extends Controller
         return response()->json(['message' => 'Deleted successfully']);
     }
 
-<<<<<<< HEAD
-     public function index(Request $request, $passengerId)
-=======
     public function index(Request $request, $passengerId)
->>>>>>> 22046366b20c75e68fb78d9e08864aa4615280a3
 {
     $perPage = $request->get('per_page', 10);
 
