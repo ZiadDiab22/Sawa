@@ -120,6 +120,7 @@ class RideService
 
             if ($wallet <= -(20 * $LE)) {
                 $this->drivers->updateStatus($driverId, 'suspended');
+
                 $driver = User::find($driverId);
                 $firebaseResult = NotificationService::send(
                 $driver->id,
