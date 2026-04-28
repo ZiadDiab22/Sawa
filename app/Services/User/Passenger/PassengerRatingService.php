@@ -27,17 +27,9 @@ class PassengerRatingService
     {
         return $this->repository->delete($id);
     }
-<<<<<<< HEAD
     public function getPassengerRatingsWithStats(int $passengerId, int $perPage = 10)
     {
         return $this->repository->getPassengerRatingsWithStats($passengerId, $perPage);
     }
 
-=======
-
-     public function getPassengerRatingsWithStats(int $passengerId, int $perPage = 10)
-    {
-        return $this->repository->getPassengerRatingsWithStats($passengerId, $perPage);
-    }
->>>>>>> 22046366b20c75e68fb78d9e08864aa4615280a3
 }
