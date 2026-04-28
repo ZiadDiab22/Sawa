@@ -17,6 +17,16 @@ class ProfileService
     ========================== */
     public function createProfile(int $userId, array $data): array
 {
+
+    $user = User::findOrFail($userId);
+    if (isset($data['profile_image']) && $data['profile_image'] instanceof UploadedFile) {
+        $path = $data['profile_image']->store('profiles', 'public');
+
+        $user->update([
+            'profile_image' => $path
+        ]);
+    }
+
     $data['user_id'] = $userId;
     $data['status'] = 'pending';
     $data['is_status'] = 'inactive';
@@ -100,7 +110,9 @@ class ProfileService
         'name'  => $profile->user->name,
         'email' => $profile->user->email,
         'phone' => $profile->user->phone,
-
+        'profile_image' => $profile->user->profile_image
+        ? asset('storage/'.$profile->user->profile_image)
+        : null,
         'gender' => $profile->gender,
 
         'vehicle_type' => $profile->vehicleType?->name,

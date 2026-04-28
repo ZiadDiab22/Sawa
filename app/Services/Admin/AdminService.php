@@ -10,6 +10,8 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+
 
 class AdminService
 {
@@ -513,7 +515,9 @@ public function toggleBannedDriver(int $userId)
     return [
         'driver' => $driver,
     ];
-}public function driverDetails(int $userId): array
+}
+
+public function driverDetails(int $userId): array
 {
     $driver = $this->AdminRepository->getDriverProfileByUser($userId);
 
@@ -540,8 +544,8 @@ public function toggleBannedDriver(int $userId)
             'email' => $user->email,
             'phone' => $user->phone,
             'profile_image' => $user->profile_image
-                ? asset('storage/'.$user->profile_image)
-                : null,
+            ? Storage::url($user->profile_image)
+            : null,
             'can_receive_requests' => $driver->can_receive_requests,
             'joining_date' => $user->created_at,
         ],

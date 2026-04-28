@@ -14,7 +14,6 @@ class DriverProfileController extends Controller
     ) {}
 
 
-    // POST /api/driver/profile
     public function store(Request $request)
     {
         $data = $this->validateData($request);
@@ -28,7 +27,6 @@ class DriverProfileController extends Controller
         ], 201);
     }
 
-    // PUT /api/driver/profile
     public function update(Request $request)
     {
         $data = $this->validateData($request, true);
@@ -42,7 +40,6 @@ class DriverProfileController extends Controller
         ]);
     }
 
-    // GET /api/driver/profile
     public function show()
     {
         return response()->json(
@@ -58,7 +55,7 @@ class DriverProfileController extends Controller
         'name'  => 'sometimes|required|string|max:255',
         'email' => 'sometimes|required|email|max:255|unique:users,email,' . auth()->id(),
         'phone' => 'sometimes|required|string|max:20|unique:users,phone,' . auth()->id(),
-
+        'profile_image' => 'required|image|max:2048',
             'gender' => 'nullable|in:male,female',
 
             'vehicle_type_id' => 'required|exists:vehicle_types,id',
@@ -80,7 +77,6 @@ class DriverProfileController extends Controller
             'vehicle_images.*' => 'image|max:2048',
         ]);
     }
-//اضافة
 
 public function deleteFile(string $field)
 {
@@ -128,12 +124,10 @@ public function updateFile(Request $request, string $field)
 
     $profile = auth()->user()->driverProfile;
 
-    // حذف الملف القديم
     if ($profile->$field) {
         Storage::disk('public')->delete($profile->$field);
     }
 
-    // حفظ الجديد
     $path = $request->file('file')->store(
         str_replace('_document', 's', $field),
         'public'

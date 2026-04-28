@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "565882789879",
+    "project_id": "sawa-8d06a",
+    "storage_bucket": "sawa-8d06a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:565882789879:android:7037ab321c33f758ced8f2",
+        "android_client_info": {
+          "package_name": "com.sawa.driver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDG9ZuflPHaly3u_JAybxwxXSzv8jgFoaY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
