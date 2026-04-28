@@ -9,6 +9,7 @@ use App\Models\WalletTransaction;
 use App\Repositories\Driver\DriverWalletRepository;
 use App\Repositories\DriverRepository;
 use App\Repositories\Ride\ProfitRepository;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -56,6 +57,7 @@ class DriverWalletService
     {
         $wallet = $this->repo->getDriverWallet($userId);
         $transactions = $this->repo->getTransactions($userId);
+        $profit = $this->profits->sumForDriverByDate($userId, Carbon::today());
 
         $transactions = $transactions->map(function ($t) {
             return ['id' => $t->id,
@@ -67,6 +69,6 @@ class DriverWalletService
                 'time' => $t->created_at->format('H:i:s'),];
         });
 
-        return ['wallet' => $wallet, 'transactions' => $transactions];
+        return ['profit' => $profit,'wallet' => $wallet, 'transactions' => $transactions];
     }
 }

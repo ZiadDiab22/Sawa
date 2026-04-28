@@ -30,7 +30,8 @@ class PassengerRatingRepository
         return PassengerRating::query()->findOrFail($id);
     }
 
-     public function getPassengerRatingsWithStats(int $passengerId, int $perPage = 10): array
+
+    public function getPassengerRatingsWithStats(int $passengerId, int $perPage = 10): array
     {
         $baseQuery = PassengerRating::query()
             ->where('user_id', $passengerId);

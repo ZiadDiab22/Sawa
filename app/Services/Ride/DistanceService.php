@@ -85,11 +85,11 @@ class DistanceService
     public function calculate(float $distanceKm, int $passengers): int
     {
         $basePrice = match (true) {
-            $distanceKm <= 2 => 100_000,
-            $distanceKm <= 4 => 150_000,
-            $distanceKm <= 5 => 200_000,
-            $distanceKm <= 7 => 250_000,
-            default => 250_000 + (($distanceKm - 7) * 70_000),
+            $distanceKm <= 2 => 150_000,
+            $distanceKm <= 4 => 200_000,
+            $distanceKm <= 5 => 250_000,
+            $distanceKm <= 7 => 300_000,
+            default => 300_000 + (($distanceKm - 7) * 100_000),
         };
 
         if ($distanceKm <= 7 && $passengers > 1) {
