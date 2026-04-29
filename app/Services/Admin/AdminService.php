@@ -421,12 +421,6 @@ public function toggleReceivingRequests(int $driverId, bool $status)
 
     return [
         'driver' => $driver,
-        'notification' => [
-            'type' => $type,
-            'title' => $title,
-            'body' => $body,
-            'firebase_result' => $firebaseResult,
-        ],
     ];
 }
 
@@ -509,11 +503,14 @@ public function toggleBannedDriver(int $userId)
 {
     $driver = $this->AdminRepository->toggleBannedDriver($userId);
 
-    $user = User::findOrFail($userId);
-
+    if (!$driver) {
+        throw new \Exception('Driver not found');
+    }
     $isBanned = $driver->is_status === 'banned';
     return [
         'driver' => $driver,
+        'is_banned' => $isBanned,
+
     ];
 }
 
