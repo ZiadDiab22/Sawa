@@ -540,6 +540,7 @@ public function driverDetails(int $userId): array
             'name' => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
+            'gender' => $user->gender,
             'profile_image' => $user->profile_image
             ? Storage::url($user->profile_image)
             : null,

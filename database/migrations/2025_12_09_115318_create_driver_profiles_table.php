@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
 
 
-            $table->enum('gender', ['male', 'female'])->nullable();
             $table->foreignId('user_id')
                 ->constrained('users')
                 ->cascadeOnDelete();

@@ -113,8 +113,7 @@ class ProfileService
         'profile_image' => $profile->user->profile_image
         ? asset('storage/'.$profile->user->profile_image)
         : null,
-        'gender' => $profile->gender,
-
+        'gender' => $profile->user->gender,
         'vehicle_type' => $profile->vehicleType?->name,
         'vehicle_make' => $profile->vehicleMake?->name,
 
@@ -155,7 +154,7 @@ public function getBasicInfo(int $userId): array
         'name'   => $user->name,
         'email'  => $user->email,
         'phone'  => $user->phone,
-        'gender' => $profile->gender,
+        'gender' => $user->gender,
         'profile_image' => $user->profile_image
             ? asset('storage/' . $user->profile_image)
             : null,
@@ -176,10 +175,10 @@ public function updateBasicInfo(int $userId, array $data): array
     ]);
 
     if (isset($data['gender'])) {
-        $profile->update([
-            'gender' => $data['gender']
-        ]);
-    }
+    $user->update([
+        'gender' => $data['gender']
+    ]);
+}
 
     if (isset($data['profile_image']) && $data['profile_image'] instanceof UploadedFile) {
 
