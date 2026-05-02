@@ -247,8 +247,12 @@ public function getDriverStatus(int $userId): array
     $profile = $this->DriverRepository
         ->getDriverWithDocumentsByUserId($userId);
 
+    $blocked = (bool)User::where('id',$userId)->value('blocked');
+
+
     return [
         'driver_status' => [
+            'blocked' => $blocked,
             'status' => $profile->status,
             'is_status' => $profile->is_status,
             'can_receive_requests' => $profile->can_receive_requests,
