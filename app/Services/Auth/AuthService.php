@@ -18,7 +18,7 @@ class AuthService
   }
 
 
-   public function sendOtp(string $phone, string $channel = 'email'): bool
+   public function sendOtp(string $phone): bool
 {
     $user = $this->userRepository->findByPhone($phone);
     if (!$user) throw new \Exception('Invalid credentials', 401);
@@ -26,14 +26,9 @@ class AuthService
     $otp = rand(100000, 999999);
     $this->userRepository->updateOtp($user, $otp);
 
-    if ($channel === 'email') {
-        Mail::to($user->email)
-            ->send(new \App\Mail\OtpMail($otp, $user->name));
-    } elseif ($channel === 'whatsapp') {
+        Mail::to($user->email)->send(new \App\Mail\OtpMail($otp, $user->name));
+
         app(WhatsAppService::class)->sendOtp($user->phone, $otp);
-    } else {
-        throw new \Exception('Invalid channel', 400);
-    }
 
     return true;
 }
@@ -69,7 +64,7 @@ class AuthService
     return $user->createToken('auth_token')->plainTextToken;
   }
 
-  
+
   public function ensureDriverIsApproved(User $user)
 {
     $profile = $user->driverProfile;

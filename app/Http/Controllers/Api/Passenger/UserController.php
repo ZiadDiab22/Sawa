@@ -24,8 +24,7 @@ class UserController extends Controller
     {
         $this->registerService->register($request->validated());
 
-        $status = $this->authService->sendOtp( $request->phone,
-        $request->channel ?? 'email');
+        $status = $this->authService->sendOtp( $request->phone);
 
         return response()->json([
             'status' => $status,
@@ -37,8 +36,7 @@ class UserController extends Controller
 
     public function login(UserLoginRequest $request)
     {
-        $status = $this->authService->sendOtp( $request->phone,
-        $request->channel ?? 'email');
+        $status = $this->authService->sendOtp( $request->phone);
 
         return response()->json([
             'status' => true,

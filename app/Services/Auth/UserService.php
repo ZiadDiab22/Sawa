@@ -29,6 +29,7 @@ class UserService
     if ($channel === 'email') {
         Mail::to($user->email)
             ->send(new \App\Mail\OtpMail($otp, $user->name));
+            
     } elseif ($channel === 'whatsapp') {
         app(\App\Services\Notifications\WhatsAppService::class)
             ->sendOtp($user->phone, $otp);

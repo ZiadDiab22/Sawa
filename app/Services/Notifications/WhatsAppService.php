@@ -2,31 +2,40 @@
 
 namespace App\Services\Notifications;
 
-use Twilio\Rest\Client;
+use Illuminate\Support\Facades\Http;
 
 class WhatsAppService
 {
-    protected Client $client;
-    protected string $from;
+    protected string $baseUrl;
+    protected string $apiKey;
 
     public function __construct()
     {
-        $this->client = new Client(
-            config('services.twilio.sid'),
-            config('services.twilio.token')
-        );
-
-        $this->from = config('services.twilio.whatsapp_from');
+        $this->baseUrl = env('ISHAAR_BASE_URL');
+        $this->apiKey = env('ISHAAR_API_KEY');
     }
 
-    public function sendOtp(string $phone, string $otp): void
+    public function sendOtp(string $phone, string $otp): bool
     {
-        $this->client->messages->create(
-            "whatsapp:+$phone",
+        $response = Http::withHeaders([
+            'Accept' => 'application/json',
+            'Accept-Language' => 'ar',
+            'x-api-key' => $this->apiKey,
+        ])->asMultipart()->post($this->baseUrl . '/message-auth', [
             [
-                "from" => $this->from,
-                "body" => "رمز التحقق الخاص بك هو: $otp"
+                'name' => 'phone',
+                'contents' => $phone,
+            ],
+            [
+                'name' => 'code',
+                'contents' => $otp,
             ]
-        );
+        ]);
+
+        if (!$response->successful()) {
+            throw new \Exception('Failed to send WhatsApp OTP');
+        }
+
+        return true;
     }
 }

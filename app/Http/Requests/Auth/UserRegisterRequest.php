@@ -18,7 +18,6 @@ class UserRegisterRequest extends FormRequest
             'email'    => 'required|email|unique:users,email',
             'phone'    => 'required|string|unique:users,phone',
             'gender' => 'required|in:male,female',
-            'channel' => 'nullable|in:email,whatsapp'
 
         ];
     }
