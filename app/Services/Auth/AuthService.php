@@ -28,7 +28,7 @@ class AuthService
 
         Mail::to($user->email)->send(new \App\Mail\OtpMail($otp, $user->name));
 
-        app(WhatsAppService::class)->sendOtp($user->phone, $otp);
+        // app(WhatsAppService::class)->sendOtp($user->phone, $otp);
 
     return true;
 }

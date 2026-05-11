@@ -32,31 +32,28 @@ class RideRequestController extends Controller
         ]);
 
 
-    $user = $rideRequest->user;
-    $Notification = NotificationService::send(
-        $user->id,
-        'ride_created',
-        'طلبك تم تسجيله',
-        'تم استلام طلبك بنجاح وسيتم البحث عن سائق.',
-        ['ride_request_id' => (string) $rideRequest->id]
-    );
+        $user = $rideRequest->user;
+        $Notification = NotificationService::send(
+            $user->id,
+            'ride_created',
+            'طلبك تم تسجيله',
+            'تم استلام طلبك بنجاح وسيتم البحث عن سائق.',
+            ['ride_request_id' => (string) $rideRequest->id]
+        );
 
         $broadcastService->sendToNearbyDrivers($rideRequest);
 
         return response()->json([
-        'status' => true,
-        'data' => $rideRequest,
-        'notification' => [
-            'type' => 'ride_created',
-            'title' => 'طلبك تم تسجيله',
-            'body'  => 'تم استلام طلبك بنجاح وسيتم التواصل معك حال وجود سائق متاح.',
-            'firebase_result' => $Notification
-        ]
-    ], 201);
+            'status' => true,
+            'data' => $rideRequest,
+            'notification' => [
+                'type' => 'ride_created',
+                'title' => 'طلبك تم تسجيله',
+                'body'  => 'تم استلام طلبك بنجاح وسيتم التواصل معك حال وجود سائق متاح.',
+                'firebase_result' => $Notification
+            ]
+        ], 201);
     }
-
-
-
 
     public function getPrice(
         CalculateRideRequest $request,
@@ -99,122 +96,118 @@ class RideRequestController extends Controller
             $request->ride_request_id,
             Auth::id()
         );
-    $userId = $response['ride']->user_id;
+        $userId = $response['ride']->user_id;
 
-    $Notification = NotificationService::send(
-        $userId,
-        'ride_accepted',
-        'تم قبول طلبك',
-        'تم قبول طلبك من قبل أحد السائقين.',
-       ['ride_request_id' => (string) $response['ride']->ride_request_id]    );
+        $Notification = NotificationService::send(
+            $userId,
+            'ride_accepted',
+            'تم قبول طلبك',
+            'تم قبول طلبك من قبل أحد السائقين.',
+            ['ride_request_id' => (string) $response['ride']->ride_request_id]
+        );
         $response['ride']->makeHidden('code');
         return response()->json([
-        'status' => true,
-        'data' => $response,
-        'notification' => [
-            'type' => 'ride_Accept',
-            'title' => '  تم قبول طلبك ',
-            'body'  => 'تم قبول طلبك بنجاح وسيتم التواصل معك من قبل السائق   .',
-            'firebase_result' => $Notification
-        ]
-], 201);
+            'status' => true,
+            'data' => $response,
+            'notification' => [
+                'type' => 'ride_Accept',
+                'title' => '  تم قبول طلبك ',
+                'body'  => 'تم قبول طلبك بنجاح وسيتم التواصل معك من قبل السائق   .',
+                'firebase_result' => $Notification
+            ]
+        ], 201);
     }
 
 
-    public function cancel(Request $request, int $id, RideRequestService $service,RideBroadcastService $broadcastService)
+    public function cancel(Request $request, int $id, RideRequestService $service, RideBroadcastService $broadcastService)
     {
         $rideRequest = $service->cancel($id, Auth::id());
 
         $broadcastService->sendCancelToNearbyDrivers($rideRequest);
-    $Notification=NotificationService::send(
-        $rideRequest->user_id,
-        'ride_request_cancelled',
-        'تم إلغاء الطلب',
-        'تم إلغاء طلب الرحلة الخاص بك.',
-        ['ride_request_id' => (string) $rideRequest->id]
-    );
+        $Notification = NotificationService::send(
+            $rideRequest->user_id,
+            'ride_request_cancelled',
+            'تم إلغاء الطلب',
+            'تم إلغاء طلب الرحلة الخاص بك.',
+            ['ride_request_id' => (string) $rideRequest->id]
+        );
         return response()->json([
             'status' => true,
             'data' => $rideRequest,
             'notification' => [
-            'type' => 'ride_request_cancelled',
-            'title' => 'تم إلغاء الطلب',
-            'body'  => 'تم إلغاء طلب الرحلة الخاص بك.',
-            'firebase_result' => $Notification
-        ]
+                'type' => 'ride_request_cancelled',
+                'title' => 'تم إلغاء الطلب',
+                'body'  => 'تم إلغاء طلب الرحلة الخاص بك.',
+                'firebase_result' => $Notification
+            ]
         ]);
     }
 
 
     public function history(Request $request, DistanceService $service)
-{
-    try {
-        $rides = $service->listUserRideRequests(Auth::id());
+    {
+        try {
+            $rides = $service->listUserRideRequests(Auth::id());
 
-        return response()->json([
-            'status' => true,
-            'data'   => $rides,
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'status'  => false,
-            'message' => $e->getMessage(),
-        ], 400);
+            return response()->json([
+                'status' => true,
+                'data'   => $rides,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => $e->getMessage(),
+            ], 400);
+        }
     }
-}
 
 
-public function historyById(Request $request, DistanceService $service)
-{
-    $request->validate([
-        'ride_request_id' => ['required', 'integer', 'exists:ride_requests,id']
-    ]);
+    public function historyById(Request $request, DistanceService $service)
+    {
+        $request->validate([
+            'ride_request_id' => ['required', 'integer', 'exists:ride_requests,id']
+        ]);
 
-    try {
-        $ride = $service->listRideRequestById(
-            $request->ride_request_id,
-            Auth::id()
-        );
+        try {
+            $ride = $service->listRideRequestById(
+                $request->ride_request_id,
+                Auth::id()
+            );
 
-        return response()->json([
-            'status' => true,
-            'data'   => $ride,
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'status'  => false,
-            'message' => $e->getMessage(),
-        ], 400);
+            return response()->json([
+                'status' => true,
+                'data'   => $ride,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => $e->getMessage(),
+            ], 400);
+        }
     }
-}
 
-public function completed(Request $request, DistanceService $service)
-{
-    $request->validate([
-        'ride_request_id' => ['required', 'integer', 'exists:ride_requests,id']
-    ]);
+    public function completed(Request $request, DistanceService $service)
+    {
+        $request->validate([
+            'ride_request_id' => ['required', 'integer', 'exists:ride_requests,id']
+        ]);
 
-    try {
-        $ride = $service->showCompletedRideForUser(
-            $request->ride_request_id,
-            Auth::id()
-        );
+        try {
+            $ride = $service->showCompletedRideForUser(
+                $request->ride_request_id,
+                Auth::id()
+            );
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Your ride has been completed successfully',
-            'data'   => $ride,
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'status'  => false,
-            'message' => $e->getMessage(),
-        ], 400);
+            return response()->json([
+                'status' => true,
+                'message' => 'Your ride has been completed successfully',
+                'data'   => $ride,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => $e->getMessage(),
+            ], 400);
+        }
     }
-}
-
-
 }

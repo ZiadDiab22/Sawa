@@ -28,8 +28,7 @@ class DistanceService
         float $lng1,
         float $lat2,
         float $lng2
-    ): float
-    {
+    ): float {
         $earthRadius = 6371;
 
         $dLat = deg2rad($lat2 - $lat1);
@@ -56,23 +55,18 @@ class DistanceService
             $data['pickup_lng']
         );
 
-//    if ($pickupDistance > $radiusKm) {
-//      throw new \DomainException('Pickup location is outside service zone');
-//    }
+        //    if ($pickupDistance > $radiusKm) {
+        //      throw new \DomainException('Pickup location is outside service zone');
+        //    }
 
-        $rideDistance = $this->calculateKm(
-            $data['pickup_lat'],
-            $data['pickup_lng'],
-            $data['drop_lat'],
-            $data['drop_lng']
-        );
+        $rideDistance = $data['distance'];
 
         $price = $this->calculate(
             $rideDistance,
             $data['passengers']
         );
 
-        $duration = $this->estimateDuration($rideDistance);
+        $duration = $data['time'];
 
         return compact('rideDistance', 'price', 'duration');
     }
@@ -162,25 +156,25 @@ class DistanceService
 
             $user = $ride->user;
 
-// $notificationResult = NotificationService::sendToUser(
-//     $user,
-//     'ride_accepted',
-//     'السائق قبل رحلتك',
-//     'تم قبول رحلتك من قبل السائق، سيتم التواصل معك قريباً.',
-//     ['ride_request_id' => (string) $ride->ride_request_id]
-// );
+            // $notificationResult = NotificationService::sendToUser(
+            //     $user,
+            //     'ride_accepted',
+            //     'السائق قبل رحلتك',
+            //     'تم قبول رحلتك من قبل السائق، سيتم التواصل معك قريباً.',
+            //     ['ride_request_id' => (string) $ride->ride_request_id]
+            // );
 
-$response = [
-    'ride' => $ride,
-    // 'notification' => [
-    //     'type' => 'ride_accepted',
-    //     'title' => 'السائق قبل رحلتك',
-    //     'body'  => 'تم قبول رحلتك من قبل السائق، سيتم التواصل معك قريباً.',
-    //     'firebase_result' => $notificationResult
-    // ]
-];
+            $response = [
+                'ride' => $ride,
+                // 'notification' => [
+                //     'type' => 'ride_accepted',
+                //     'title' => 'السائق قبل رحلتك',
+                //     'body'  => 'تم قبول رحلتك من قبل السائق، سيتم التواصل معك قريباً.',
+                //     'firebase_result' => $notificationResult
+                // ]
+            ];
 
-return $response;
+            return $response;
         });
     }
 
@@ -200,7 +194,6 @@ return $response;
             }
 
             return $rides;
-
         } catch (\DomainException $e) {
             throw new \Exception('Ride History Error: ' . $e->getMessage());
         } catch (\Throwable $e) {
@@ -222,7 +215,6 @@ return $response;
             }
 
             return $ride;
-
         } catch (\DomainException $e) {
             throw new \Exception('Ride Request Error: ' . $e->getMessage());
         } catch (\Throwable $e) {
@@ -240,7 +232,6 @@ return $response;
             }
 
             return $ride;
-
         } catch (\DomainException $e) {
             throw new \Exception('Completed Ride Error: ' . $e->getMessage());
         } catch (\Throwable $e) {
