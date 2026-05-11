@@ -65,7 +65,7 @@ public function resendOtp(Request $request)
 
     $status = $this->authService->sendOtp(
         $request->phone,
-        $request->channel ?? 'email'
+        $request->email
     );
 
     return response()->json([
