@@ -18,7 +18,7 @@ class UserService
     return ['user' => $this->userRepository->create($data)];
   }
 
- public function sendOtp(string $phone, string $channel = 'email'): bool
+ public function sendOtp(string $phone): bool
 {
     $user = $this->userRepository->findByPhone($phone);
     if (!$user) throw new \Exception('User not found');
@@ -26,17 +26,14 @@ class UserService
     $otp = rand(100000, 999999);
     $this->userRepository->updateOtp($user, $otp);
 
-    if ($channel === 'email') {
+   
         Mail::to($user->email)
             ->send(new \App\Mail\OtpMail($otp, $user->name));
             
-    } elseif ($channel === 'whatsapp') {
-        app(\App\Services\Notifications\WhatsAppService::class)
-            ->sendOtp($user->phone, $otp);
-    } else {
-        throw new \Exception('Invalid channel', 400);
-    }
-
+    
+        // app(\App\Services\Notifications\WhatsAppService::class)
+        //     ->sendOtp($user->phone, $otp);
+   
     return true;
 }
 
