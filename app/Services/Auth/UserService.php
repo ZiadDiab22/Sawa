@@ -31,8 +31,8 @@ class UserService
             ->send(new \App\Mail\OtpMail($otp, $user->name));
 
 
-        // app(\App\Services\Notifications\WhatsAppService::class)
-        //     ->sendOtp($user->phone, $otp);
+        app(\App\Services\Notifications\WhatsAppService::class)
+            ->sendOtp($user->phone, $otp);
 
 
     return true;

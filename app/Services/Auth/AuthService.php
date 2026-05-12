@@ -26,9 +26,11 @@ class AuthService
     $otp = rand(100000, 999999);
     $this->userRepository->updateOtp($user, $otp);
 
-        Mail::to($user->email)->send(new \App\Mail\OtpMail($otp, $user->name));
+    Mail::to($user->email)
+        ->send(new \App\Mail\OtpMail($otp, $user->name));
 
-        // app(WhatsAppService::class)->sendOtp($user->phone, $otp);
+    app(\App\Services\Notifications\WhatsAppService::class)
+        ->sendOtp($user->phone, $otp);
 
     return true;
 }

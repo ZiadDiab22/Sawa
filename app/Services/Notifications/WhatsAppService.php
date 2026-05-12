@@ -6,36 +6,35 @@ use Illuminate\Support\Facades\Http;
 
 class WhatsAppService
 {
-    protected string $baseUrl;
-    protected string $apiKey;
-
-    public function __construct()
-    {
-        $this->baseUrl = env('ISHAAR_BASE_URL');
-        $this->apiKey = env('ISHAAR_API_KEY');
-    }
-
-    public function sendOtp(string $phone, string $otp): bool
+    public function sendOtp($phone, $otp)
     {
         $response = Http::withHeaders([
-            'Accept' => 'application/json',
-            'Accept-Language' => 'ar',
-            'x-api-key' => $this->apiKey,
-        ])->asMultipart()->post($this->baseUrl . '/message-auth', [
-            [
-                'name' => 'phone',
-                'contents' => $phone,
+            'X-API-Key' => env('RASEL_API_KEY'),
+            'Content-Type' => 'application/json',
+        ])->post(env('RASEL_BASE_URL') . '/api/v2/messages/send', [
+
+            'to' => $phone,
+
+            'channel' => 'whatsapp',
+
+            'messageType' => 'free_text',
+
+            'content' => [
+                'text' => "رمز التحقق الخاص بك هو: {$otp}"
             ],
-            [
-                'name' => 'code',
-                'contents' => $otp,
+
+            'options' => [
+                'priority' => 'high'
             ]
+
         ]);
 
         if (!$response->successful()) {
-            throw new \Exception('Failed to send WhatsApp OTP');
+            throw new \Exception(
+                'WhatsApp OTP failed: ' . $response->body()
+            );
         }
 
-        return true;
+        return $response->json();
     }
 }
