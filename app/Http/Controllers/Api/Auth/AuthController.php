@@ -60,7 +60,6 @@ public function resendOtp(Request $request)
 {
     $request->validate([
         'phone' => 'required|string|exists:users,phone',
-        'channel' => 'nullable|in:email,whatsapp'
     ]);
 
     $status = $this->authService->sendOtp(

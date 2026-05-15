@@ -27,8 +27,8 @@ class UserService
     $this->userRepository->updateOtp($user, $otp);
 
 
-        Mail::to($user->email)
-            ->send(new \App\Mail\OtpMail($otp, $user->name));
+        // Mail::to($user->email)
+        //     ->send(new \App\Mail\OtpMail($otp, $user->name));
 
 
         app(\App\Services\Notifications\WhatsAppService::class)

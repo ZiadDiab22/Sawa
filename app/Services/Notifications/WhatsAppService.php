@@ -11,7 +11,7 @@ class WhatsAppService
         $response = Http::withHeaders([
             'X-API-Key' => env('RASEL_API_KEY'),
             'Content-Type' => 'application/json',
-        ])->post(env('RASEL_BASE_URL') . '/api/v2/messages/send', [
+        ])->post('https://raselsms.com/api/v2/messages/send', [
 
             'to' => $phone,
 

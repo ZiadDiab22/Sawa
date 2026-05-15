@@ -15,7 +15,7 @@ class UserRegisterRequest extends FormRequest
     {
         return [
             'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
+            'email'    => 'nullable|email|unique:users,email',
             'phone'    => 'required|string|unique:users,phone',
             'gender' => 'required|in:male,female',
 
