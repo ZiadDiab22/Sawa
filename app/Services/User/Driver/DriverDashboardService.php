@@ -10,27 +10,27 @@ use Illuminate\Support\Facades\DB;
 
 class DriverDashboardService
 {
-  public function __construct(
-    private RideRepository          $rides,
-    private DriverRatingRepository  $ratings,
-    private ProfitRepository  $profits,
-  ) {}
+    public function __construct(
+        private RideRepository          $rides,
+        private DriverRatingRepository  $ratings,
+        private ProfitRepository  $profits,
+    ) {}
 
-  public function handle(int $driverId): array
-  {
-    $today = Carbon::today();
+    public function handle(int $driverId): array
+    {
+        $today = Carbon::today();
 
-    return [
-      'completed_rides_count' => $this->rides
-        ->countCompletedByDriverForDate($driverId, $today),
+        return [
+            'completed_rides_count' => $this->rides
+                ->countCompletedByDriverForDate($driverId, $today),
 
-      'average_rating' => $this->ratings
-        ->averageForDriverByDate($driverId, $today),
+            'average_rating' => $this->ratings
+                ->averageForDriver($driverId),
 
-      'total_profit' => $this->profits
-        ->sumForDriverByDate($driverId, $today),
-    ];
-  }
+            'total_profit' => $this->profits
+                ->sumForDriverByDate($driverId, $today),
+        ];
+    }
 
     public function stats(
         int $driverId,
@@ -95,7 +95,7 @@ class DriverDashboardService
                 now()->endOfMonth(),
             ],
 
-            'all' => [ null, null ],
+            'all' => [null, null],
 
             'custom' => [
                 Carbon::parse($from)->startOfDay(),
@@ -114,8 +114,7 @@ class DriverDashboardService
             ->exists();
 
         if (!$isDriver) {
-           throw new \Exception();
+            throw new \Exception();
         }
     }
-
 }

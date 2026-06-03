@@ -37,18 +37,28 @@ class DriverRatingRepository
       ->avg('rating') ?? 0;
   }
 
-   public function getDriverRatingsWithStats(int $driverId, int $perPage = 10): array
-    {
-        $baseQuery = DriverRating::query()
-            ->where('driver_id', $driverId);
+  public function averageForDriver(int $driverId): float
+  {
+    return round(
+      (float) (DriverRating::query()
+        ->where('driver_id', $driverId)
+        ->avg('rating') ?? 0),
+      1
+    );
+  }
 
-        return [
-            'average' => (clone $baseQuery)->avg('rating') ?? 0,
+  public function getDriverRatingsWithStats(int $driverId, int $perPage = 10): array
+  {
+    $baseQuery = DriverRating::query()
+      ->where('driver_id', $driverId);
 
-            'ratings' => $baseQuery
-                ->with('user:id,name')
-                ->latest()
-                ->paginate($perPage),
-        ];
-    }
+    return [
+      'average' => (clone $baseQuery)->avg('rating') ?? 0,
+
+      'ratings' => $baseQuery
+        ->with('user:id,name')
+        ->latest()
+        ->paginate($perPage),
+    ];
+  }
 }
