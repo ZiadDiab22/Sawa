@@ -903,7 +903,7 @@ public function getDriverProfileByUser(int $userId): DriverProfile
 
     public function rideStats(int $driverUserId): array
 {
-    $stats = Ride::where('user_id', $driverUserId)
+    $stats = Ride::where('driver_id', $driverUserId)
         ->selectRaw("
             COUNT(*) as total_rides,
             SUM(CASE WHEN status IN ('driver_on_way','on_going') THEN 1 ELSE 0 END) as live_rides,

@@ -13,7 +13,7 @@ class AdminSeeder extends Seeder
         $adminId = DB::table('users')->insertGetId([
             'name'       => 'Admin',
             'email'      => 'mohammad@taxisawa.com',
-            'phone'      => '+961 81 386 601',
+            'phone'      => '+96181386601',
             'password'   => Hash::make('112233MOmo@@'),
             'gender'     => 'male'
         ]);
